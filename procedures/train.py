@@ -90,5 +90,8 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def apply_label_temp(labels, _):
-    return labels
+def create_placeholders(input_size, output_size, _):
+    inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
+    labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
+    return inp, labels
+

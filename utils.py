@@ -53,11 +53,6 @@ def create_optional_params():
     labels_temp = tf.placeholder(tf.float32, name='labels_temp')
     return keep_prob_input, keep_prob, temp, labels_temp
 
-def create_placeholders(input_size, output_size):
-    inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
-    labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
-    return inp, labels
-
 def create_train_ops(h, labels):
     with tf.variable_scope('xent'):
         loss = tf.reduce_mean(

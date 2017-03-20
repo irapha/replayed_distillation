@@ -1,5 +1,5 @@
 
-def get(dataset_name, bottleneck_file=None):
+def get(dataset_name):
     """ Returns a dataset object with easy interface.
 
     Interface:
@@ -12,9 +12,6 @@ def get(dataset_name, bottleneck_file=None):
     if dataset_name == 'mnist':
         from . import mnist as m
         return m.MNISTIterator()
-    if dataset_name == 'mnist_bottleneck':
-        from . import mnist_bottleneck as m
-        return m.MNISTIterator(bottleneck_file)
     else:
         raise NotImplemented('This dataset not implemented')
 

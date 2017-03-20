@@ -5,6 +5,7 @@ the dataset, and save the checkpoints.
 import numpy as np
 import os
 import tensorflow as tf
+import utils as u
 
 from utils import ensure_dir_exists
 
@@ -49,6 +50,9 @@ def run(sess, f, data, placeholders, train_step, summary_op):
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
 
     with sess.as_default():
+        # restore old model
+        saver.restore(sess, tf.train.latest_checkpoint(FLAGS.checkpoint_dir))
+
         global_step = 0
 
         for i in range(f.epochs):
@@ -90,8 +94,14 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def apply_label_temp(h, label_temp):
-    with tf.variable_scope('label_temp'):
-        h_soft = tf.div(h, label_temp)
-    with tf.variable_scope('tempd_sftmx'):
-        return tf.nn.softmax(h_soft)
+def create_placeholders(input_size, output_size, optionals):
+    keep_inp, keep, temp, labels_temp = optionals
+
+    inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
+    # create graph
+    # TODO: maybe do this from meta?
+    out = m.get('hinton1200').create_model(inp, output_size, keep_inp, keep, temp)
+    with tf.variable_scope('labels_sftmx'):
+        labels = tf.softmax(out)
+
+    return inp, labels

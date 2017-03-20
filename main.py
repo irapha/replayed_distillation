@@ -20,7 +20,6 @@ flags.DEFINE_string('dataset', '', 'ImageNet or MNIST')
 flags.DEFINE_string('model', '', 'hinton1200, hinton800, lenet300100, lenet5, alexnet, vgg16')
 flags.DEFINE_integer('rng_seed', 42, 'RNG seed, fixed for consistency')
 flags.DEFINE_string('procedure', '', 'train, kd, irkd')
-flags.DEFINE_string('bottleneck_file', '', 'where the bottlenecks are stored')
 
 flags.DEFINE_integer('epochs', 10, 'Number of training epochs')
 flags.DEFINE_integer('train_batch_size', 64, 'number of examples to be used for training')
@@ -37,11 +36,11 @@ if __name__ == '__main__':
 
     # create graph
     input_size, output_size = d.get_io_size(FLAGS.dataset)
-    inp, labels = u.create_placeholders(input_size, output_size)
-
     keep_inp, keep, temp, labels_temp = u.create_optional_params()
+
+    inp, labels = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, (keep_inp, keep, temp, labels_temp))
+
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
-    labels = p.get(FLAGS.procedure).apply_label_temp(labels, labels_temp) # distill will do it, others are noop
 
     loss, train_step = u.create_train_ops(out, labels)
 
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     summary_op = u.create_summary_ops(loss, accuracy, top5)
 
     # initialize dataset interface
-    data = d.get(FLAGS.dataset, FLAGS.bottleneck_file)
+    data = d.get(FLAGS.dataset)
 
     # initialize session
     sess = tf.Session(u.get_sess_config(use_gpu=True))
