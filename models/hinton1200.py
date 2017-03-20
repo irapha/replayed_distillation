@@ -22,6 +22,6 @@ def create_model(inp, out_size, keep_inp=0.8, keep=0.5):
         with tf.variable_scope('fc3'):
             w = tf.Variable(tf.truncated_normal([1200, out_size]), name='w')
             b = tf.Variable(tf.constant(0.1, shape=[out_size]), name='b')
-            h = tf.matmul(z, w) + b
+            h = tf.matmul(z_drop, w) + b
 
     return h
