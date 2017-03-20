@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     keep_inp, keep, temp, labels_temp = u.create_optional_params()
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
-    labels = p.get(FLAGS.procedure).apply_label_temp(labels, label_temp) # distill will do it, others are noop
+    labels = p.get(FLAGS.procedure).apply_label_temp(labels, labels_temp) # distill will do it, others are noop
 
     loss, train_step = u.create_train_ops(out, labels)
 
