@@ -115,4 +115,7 @@ def create_placeholders(input_size, output_size, _):
     with tf.variable_scope('labels_sftmx'):
         labels = tf.nn.softmax(out)
 
+    with tf.variable_scope('stoppp'):
+        labels = tf.stop_gradient(labels)
+
     return inp, labels, keep_inp, keep, labels_temp

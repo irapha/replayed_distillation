@@ -64,7 +64,7 @@ def create_train_ops(h, labels):
     return loss, train_step
 
 def create_eval_ops(y, y_):
-    with tf.variable_scope('eval'):
+    with tf.variable_scope('eval_distill'):
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
