@@ -13,7 +13,7 @@ def grouper(iterable, batch_size, fill_value=None):
 
 class MNISTIterator(object):
 
-    def __init__(self, botteneck_file):
+    def __init__(self, bottleneck_file):
         self.og = input_data.read_data_sets("MNIST_data/", one_hot=True)
         with open(bottleneck_file, 'rb') as f:
             self.bottlenecks = np.load(f)
