@@ -55,7 +55,8 @@ def run(sess, f, data, placeholders, train_step, summary_op):
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={inp: batch_x, labels: batch_y,
-                            keep_inp: 0.8, keep: 0.5})
+                            #  keep_inp: 0.8, keep: 0.5})
+                            keep_inp: 1.0, keep: 0.5})
 
                 train_writer.add_summary(summary, global_step)
 
