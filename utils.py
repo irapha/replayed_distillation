@@ -47,7 +47,7 @@ def save_log(log, summary_folder, run_name, log_file):
         f.write(json.dumps(log))
 
 def create_keep_probs():
-    with tf.variable_scope('inp_drop'):
+    with tf.variable_scope('drop'):
         keep_prob_input = tf.placeholder(tf.float32)
         keep_prob = tf.placeholder(tf.float32)
     return keep_prob_input, keep_prob
@@ -78,11 +78,10 @@ def create_eval_ops(y, y_):
     return accuracy, top5_accuracy
 
 def create_summary_ops(loss, accuracy, top5):
-    with tf.variable_scope('summary'):
-        loss_summary_op = tf.summary.scalar('loss', loss)
-        accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
-        top5_summary_op = tf.summary.scalar('top5 accuracy', top5)
-        return tf.summary.merge_all()
+    loss_summary_op = tf.summary.scalar('loss', loss)
+    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
+    top5_summary_op = tf.summary.scalar('top5 accuracy', top5)
+    return tf.summary.merge_all()
 
 def ensure_dir_exists(dir_name):
     if not os.path.exists(dir_name):
