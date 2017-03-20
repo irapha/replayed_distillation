@@ -58,10 +58,7 @@ def create_placeholders(input_size, output_size):
     labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
     return inp, labels
 
-def create_train_ops(h, labels, label_temp):
-    with tf.variable_scope('temp'):
-        h_soft = tf.div(h, label_temp)
-
+def create_train_ops(h, labels):
     with tf.variable_scope('xent'):
         loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h_soft, name='sftmax_xent'))

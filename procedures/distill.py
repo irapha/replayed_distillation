@@ -38,7 +38,7 @@ def merge_summary_list(summary_list, do_print=False):
     return final_summary
 
 def run(sess, f, data, placeholders, train_step, summary_op):
-    inp, labels, keep_inp, keep, temp labels_temp = placeholders
+    inp, labels, keep_inp, keep, temp, labels_temp = placeholders
     # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
 
     saver = tf.train.Saver(tf.global_variables())
@@ -53,12 +53,11 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
-            for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
+            for batch_x, batch_y in data.train_bottlenecks_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={inp: batch_x, labels: batch_y,
-                            #  keep_inp: 0.8, keep: 0.5})
                             keep_inp: 1.0, keep: 0.5,
-                            temp: 1.0, labels_temp: 1.0})
+                            temp: 8.0, labels_temp: 8.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
@@ -78,7 +77,8 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={inp: train_batch_x, labels: train_batch_y,
-                                    keep_inp: 1.0, keep: 1.0, temp: 1.0})
+                                    keep_inp: 1.0, keep: 1.0,
+                                    temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -90,5 +90,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def apply_label_temp(labels, _):
-    return labels
+def apply_label_temp(h, label_temp):
+    with tf.variable_scope('temp'):
+        h_soft = tf.div(h, label_temp)
+        return tf.softmax(h_soft)

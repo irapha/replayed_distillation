@@ -1,3 +1,5 @@
+# python main.py --run_name=hinton800_mnist --dataset=mnist --model=hinton800 --procedure=train
+
 import numpy as np
 import tensorflow as tf
 import datetime as dt
@@ -38,8 +40,10 @@ if __name__ == '__main__':
 
     keep_inp, keep, temp, labels_temp = u.create_optional_params()
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
+    labels = p.get(FLAGS.procedure).apply_label_temp(labels, label_temp) # distill will do it, others are noop
 
-    loss, train_step = u.create_train_ops(out, labels, labels_temp)
+    loss, train_step = u.create_train_ops(out, labels)
+
     accuracy, top5 = u.create_eval_ops(out, labels)
     summary_op = u.create_summary_ops(loss, accuracy, top5)
 
