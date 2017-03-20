@@ -38,7 +38,7 @@ def merge_summary_list(summary_list, do_print=False):
     return final_summary
 
 def run(sess, f, data, placeholders, train_step, summary_op):
-    inp, labels, keep_inp, keep, temp labels_temp = placeholders
+    inp, labels, keep_inp, keep, temp, labels_temp = placeholders
     # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
 
     saver = tf.train.Saver(tf.global_variables())
@@ -90,8 +90,10 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def create_placeholders(input_size, output_size, _):
+def create_placeholders(input_size, output_size, optionals):
+    keep_inp, keep, temp, labels_temp = optionals
+
     inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
     labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
-    return inp, labels
+    return inp, labels, keep_inp, keep, labels_temp
 
