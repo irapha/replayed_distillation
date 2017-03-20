@@ -23,7 +23,7 @@ flags.DEFINE_integer('epochs', 1, 'Number of training epochs')
 flags.DEFINE_integer('train_batch_size', 64, 'number of examples to be used for training')
 flags.DEFINE_integer('test_batch_size', 64, 'number of examples to be used for testing')
 flags.DEFINE_integer('eval_interval', 100, 'Number of training steps between test set evaluations')
-flags.DEFINE_integer('checkpoint_steps', 1000, 'Number of steps between checkpoints')
+flags.DEFINE_integer('checkpoint_interval', 1000, 'Number of steps between checkpoints')
 
 
 if __name__ == '__main__':
@@ -39,18 +39,20 @@ if __name__ == '__main__':
     keep_inp, keep = u.create_keep_probs()
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep)
 
-    train_step = u.create_train_ops(out, labels)
-    accuracy = u.create_eval_ops(out, labels)
+    loss, train_step = u.create_train_ops(out, labels)
+    accuracy, top5 = u.create_eval_ops(out, labels)
+    summary_op = u.create_summary_ops(loss, accuracy, top5)
 
     # initialize dataset interface
     data = d.get(FLAGS.dataset)
 
     # initialize session
-    sess = tf.Session()
+    sess = tf.Session(u.get_sess_config(use_gpu=True))
     sess.run(tf.global_variables_initializer())
 
     # run training procedure
-    p.get(FLAGS.procedure).run(FLAGS)
+    p.get(FLAGS.procedure).run(sess, FLAGS, data,
+            (inp, labels, keep_inp, keep), train_step, summary_op)
 
     # save log
     u.save_log(log, FLAGS.summary_folder, FLAGS.run_name, FLAGS.log_file)

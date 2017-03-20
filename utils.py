@@ -25,7 +25,7 @@ def get_logger(f):
     log['end_time'] = None
 
     log['run_name'] = f.run_name
-    log['commit'] = f.commit
+    log['commit'] = f.commit.decode('utf-8')
     log['dataset'] = f.dataset
     log['model'] = f.model
     log['rng_seed'] = f.rng_seed
@@ -35,7 +35,7 @@ def get_logger(f):
     log['train_batch_size'] = f.train_batch_size
     log['test_batch_size'] = f.test_batch_size
     log['eval_interval'] = f.eval_interval
-    log['checkpoint_steps'] = f.checkpoint_steps
+    log['checkpoint_interval'] = f.checkpoint_interval
 
     return log
 
@@ -58,20 +58,36 @@ def create_placeholders(input_size, output_size):
 
 def create_train_ops(h, labels):
     with tf.variable_scope('xent'):
-        loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent')
-        loss_summary_op = tf.summary.scalar('train-loss', loss)
+        loss = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
 
     with tf.variable_scope('opt'):
         train_step = tf.train.AdamOptimizer().minimize(loss)
 
-    return train_step
+    return loss, train_step
 
 def create_eval_ops(y, y_):
     # TODO: add top-5 too!!!
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    return accuracy
+
+    y_dense = tf.where(tf.equal(y_, 1))[:,1]
+    correct_top5 = tf.nn.in_top_k(y, y_dense, 5)
+    top5_accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return accuracy, top5_accuracy
+
+def create_summary_ops(loss, accuracy, top5):
+    loss_summary_op = tf.summary.scalar('loss', loss)
+    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
+    top5_summary_op = tf.summary.scalar('top5 accuracy', top5)
+    return tf.summary.merge_all()
 
 def ensure_dir_exists(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
+
+def get_sess_config(use_gpu=True):
+    if use_gpu:
+        return None
+    else:
+        return tf.ConfigProto(device_count={'GPU': 0})
