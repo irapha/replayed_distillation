@@ -46,7 +46,7 @@ if __name__ == '__main__':
     tf.add_to_collection('output', out)
     tf.add_to_collection('keep', keep)
     tf.add_to_collection('keep_inp', keep_inp)
-    tf.add_to_collection('labels_temp', labels_temp)
+    tf.add_to_collection('labels_temp', temp) # not wrong dw
 
     loss, train_step = u.create_train_ops(out, labels)
 

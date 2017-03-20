@@ -10,8 +10,8 @@ import models as m
 
 from utils import ensure_dir_exists
 
-MODEL_META = 'summaries/hinton1200_mnist/checkpoint/hinton1200-8000.meta'
-MODEL_CHECKPOINT = 'summaries/hinton1200_mnist/checkpoint/hinton1200-8000'
+MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
+MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
@@ -103,14 +103,23 @@ def create_placeholders(input_size, output_size, optionals):
     with tf.Session() as sess:
         new_saver = tf.train.import_meta_graph(MODEL_META)
         new_saver.restore(sess, MODEL_CHECKPOINT)
-        print(new_saver.to_proto())
+        #  print(new_saver.to_proto())
         #  print(tf.get_collection(tf.GraphKeys.VARIABLES))
         #  inp = tf.get_collection('inputs')[0]
-        print(tf.get_collection('opt'))
-        out = tf.get_collection('outputs')[0]
 
-        keep_inp = tf.get_collection('keep_prob_input')[0]
-        keep = tf.get_collection('keep_prob')[0]
+
+    #  tf.add_to_collection('input', inp)
+    #  tf.add_to_collection('output', out)
+    #  tf.add_to_collection('keep', keep)
+    #  tf.add_to_collection('keep_inp', keep_inp)
+    #  tf.add_to_collection('labels_temp', labels_temp)
+
+
+        #  print(tf.get_collection('opt'))
+        out = tf.get_collection('output')[0]
+
+        keep_inp = tf.get_collection('keep_inp')[0]
+        keep = tf.get_collection('keep')[0]
         temp = tf.get_collection('temp')[0]
         #  labels_temp = tf.get_collection('labels_temp')[0]
 
