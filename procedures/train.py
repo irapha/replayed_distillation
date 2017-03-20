@@ -80,10 +80,10 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
+                global_step += 1
+
                 if global_step % f.checkpoint_interval == 0:
                     checkpoint_dir = os.path.join(summary_dir, 'checkpoint/')
                     ensure_dir_exists(checkpoint_dir)
                     checkpoint_file = os.path.join(checkpoint_dir, 'step{}'.format(global_step))
                     saver.save(sess, checkpoint_file, global_step=global_step)
-
-                global_step += 1
