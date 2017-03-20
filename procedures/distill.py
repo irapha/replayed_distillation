@@ -93,4 +93,4 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 def apply_label_temp(h, label_temp):
     with tf.variable_scope('temp'):
         h_soft = tf.div(h, label_temp)
-        return tf.softmax(h_soft)
+        return tf.nn.softmax(h_soft)
