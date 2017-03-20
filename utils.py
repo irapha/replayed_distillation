@@ -47,8 +47,9 @@ def save_log(log, summary_folder, run_name, log_file):
         f.write(json.dumps(log))
 
 def create_keep_probs():
-    keep_prob_input = tf.placeholder(tf.float32)
-    keep_prob = tf.placeholder(tf.float32)
+    with tf.variable_scope('input_drop'):
+        keep_prob_input = tf.placeholder(tf.float32)
+        keep_prob = tf.placeholder(tf.float32)
     return keep_prob_input, keep_prob
 
 def create_placeholders(input_size, output_size):
@@ -67,20 +68,21 @@ def create_train_ops(h, labels):
     return loss, train_step
 
 def create_eval_ops(y, y_):
-    # TODO: add top-5 too!!!
-    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    with tf.variable_scope('eval'):
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    y_dense = tf.where(tf.equal(y_, 1))[:,1]
-    correct_top5 = tf.nn.in_top_k(y, y_dense, 5)
-    top5_accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        y_dense = tf.where(tf.equal(y_, 1))[:,1]
+        correct_top5 = tf.nn.in_top_k(y, y_dense, 5)
+        top5_accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return accuracy, top5_accuracy
 
 def create_summary_ops(loss, accuracy, top5):
-    loss_summary_op = tf.summary.scalar('loss', loss)
-    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
-    top5_summary_op = tf.summary.scalar('top5 accuracy', top5)
-    return tf.summary.merge_all()
+    with tf.variable_scope('summary'):
+        loss_summary_op = tf.summary.scalar('loss', loss)
+        accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
+        top5_summary_op = tf.summary.scalar('top5 accuracy', top5)
+        return tf.summary.merge_all()
 
 def ensure_dir_exists(dir_name):
     if not os.path.exists(dir_name):
