@@ -37,8 +37,9 @@ if __name__ == '__main__':
     # create graph
     input_size, output_size = d.get_io_size(FLAGS.dataset)
     #  keep_inp, keep, temp, labels_temp = u.create_optional_params()
+    temp = tf.placeholder(tf.float32, name='temp')
 
-    inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, (keep_inp, keep, temp, labels_temp))
+    inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, None)
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
 
