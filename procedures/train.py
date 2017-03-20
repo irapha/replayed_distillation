@@ -6,7 +6,7 @@ import numpy as np
 import os
 import tensorflow as tf
 
-import sys
+from utils import ensure_dir_exists
 
 
 def merge_summary_list(summary_list, do_print=False):
@@ -53,8 +53,6 @@ def run(sess, f, data, placeholders, train_step, summary_op):
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
-                global_step += 1
-
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={inp: batch_x, labels: batch_y,
                             keep_inp: 0.8, keep: 0.5})
@@ -70,13 +68,12 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                                     keep_inp: 1.0, keep: 1.0})
                         summaries.append(summary)
 
-                    test_writer.add_summary(merge_summary_list(summaries), global_step)
+                    test_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
                 if global_step % f.checkpoint_interval == 0:
-                    checkpoint_file = os.path.join(summary_dir, 'checkpoint', 'epoch{}'.format(global_step))
-                    saver.save(sess, checkpoint_file, global_step=i)
+                    checkpoint_dir = os.path.join(summary_dir, 'checkpoint/')
+                    ensure_dir_exists(checkpoint_dir)
+                    checkpoint_file = os.path.join(checkpoint_dir, 'step{}'.format(global_step))
+                    saver.save(sess, checkpoint_file, global_step=global_step)
 
-
-
-
-
+                global_step += 1
