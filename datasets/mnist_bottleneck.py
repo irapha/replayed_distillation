@@ -26,7 +26,7 @@ class MNISTIterator(object):
                     for i in batch_i if i is not None]
             yield zip(*batch)
 
-    def train_bottleneck_epoch_in_batches(self, batch_size):
+    def train_bottlenecks_epoch_in_batches(self, batch_size):
         train_list = list(range(len(self.og.train.images)))
         np.random.shuffle(train_list)
         for batch_i in grouper(train_list, batch_size):
