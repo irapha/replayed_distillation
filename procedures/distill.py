@@ -6,9 +6,12 @@ import numpy as np
 import os
 import tensorflow as tf
 import utils as u
+import models as m
 
 from utils import ensure_dir_exists
 
+CHECKPOINT_DIR = 'summary/hinton1200/checkpoint/'
+PRETRAINED_MODEL = 'hinton1200'
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
@@ -51,7 +54,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 
     with sess.as_default():
         # restore old model
-        saver.restore(sess, tf.train.latest_checkpoint(FLAGS.checkpoint_dir))
+        saver.restore(sess, tf.train.latest_checkpoint(CHECKPOINT_DIR))
 
         global_step = 0
 
@@ -100,8 +103,8 @@ def create_placeholders(input_size, output_size, optionals):
     inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
     # create graph
     # TODO: maybe do this from meta?
-    out = m.get('hinton1200').create_model(inp, output_size, keep_inp, keep, temp)
+    out = m.get(PRETRAINED_MODEL).create_model(inp, output_size, keep_inp, keep, temp)
     with tf.variable_scope('labels_sftmx'):
-        labels = tf.softmax(out)
+        labels = tf.nn.softmax(out)
 
     return inp, labels
