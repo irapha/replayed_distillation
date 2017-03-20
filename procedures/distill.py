@@ -57,7 +57,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
-            for batch_x, batch_y in data.train_bottlenecks_epoch_in_batches(f.train_batch_size):
+            for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={inp: batch_x, #labels: batch_y,
                             'inputs': batch_x,
