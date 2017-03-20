@@ -42,11 +42,11 @@ if __name__ == '__main__':
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
 
-    tf.add_to_collection('input', inp)
-    tf.add_to_collection('output', out)
-    tf.add_to_collection('keep', keep)
-    tf.add_to_collection('keep_inp', keep_inp)
-    tf.add_to_collection('labels_temp', temp) # not wrong dw
+    #  tf.add_to_collection('input', inp)
+    #  tf.add_to_collection('output', out)
+    #  tf.add_to_collection('keep', keep)
+    #  tf.add_to_collection('keep_inp', keep_inp)
+    #  tf.add_to_collection('labels_temp', temp) # not wrong dw
 
     loss, train_step = u.create_train_ops(out, labels)
 

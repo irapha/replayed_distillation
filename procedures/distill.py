@@ -103,27 +103,13 @@ def create_placeholders(input_size, output_size, optionals):
     with tf.Session() as sess:
         new_saver = tf.train.import_meta_graph(MODEL_META)
         new_saver.restore(sess, MODEL_CHECKPOINT)
-        #  print(new_saver.to_proto())
-        #  print(tf.get_collection(tf.GraphKeys.VARIABLES))
-        #  inp = tf.get_collection('inputs')[0]
 
-
-    #  tf.add_to_collection('input', inp)
-    #  tf.add_to_collection('output', out)
-    #  tf.add_to_collection('keep', keep)
-    #  tf.add_to_collection('keep_inp', keep_inp)
-    #  tf.add_to_collection('labels_temp', labels_temp)
-
-
-        #  print(tf.get_collection('opt'))
         out = tf.get_collection('output')[0]
-
         keep_inp = tf.get_collection('keep_inp')[0]
         keep = tf.get_collection('keep')[0]
-        temp = tf.get_collection('temp')[0]
-        #  labels_temp = tf.get_collection('labels_temp')[0]
+        labels_temp = tf.get_collection('labels_temp')[0]
 
     with tf.variable_scope('labels_sftmx'):
         labels = tf.nn.softmax(out)
 
-    return inp, labels, keep_inp, keep, temp
+    return inp, labels, keep_inp, keep, labels_temp
