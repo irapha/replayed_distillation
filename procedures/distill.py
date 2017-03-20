@@ -60,7 +60,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={inp: batch_x, #labels: batch_y,
-                            'inputs': batch_x,
+                            #  'inputs': batch_x,
                             keep_inp: 1.0, keep: 0.5,
                             temp: 8.0, labels_temp: 8.0})
 
@@ -72,7 +72,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={inp: test_batch_x, #labels: test_batch_y,
-                                    'inputs': batch_x,
+                                    #  'inputs': batch_x,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -83,7 +83,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={inp: train_batch_x, #labels: train_batch_y,
-                                    'inputs': batch_x,
+                                    #  'inputs': batch_x,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -105,6 +105,7 @@ def create_placeholders(input_size, output_size, optionals):
         new_saver.restore(sess, MODEL_CHECKPOINT)
 
         inp = tf.get_collection('input')[0]
+        print(repr(inp))
         out = tf.get_collection('output')[0]
         keep_inp = tf.get_collection('keep_inp')[0]
         keep = tf.get_collection('keep')[0]
