@@ -13,7 +13,7 @@ def get(dataset_name, bottleneck_file=None):
         from . import mnist as m
         return m.MNISTIterator()
     if dataset_name == 'mnist_bottleneck':
-        from . import mnist as m
+        from . import mnist_bottleneck as m
         return m.MNISTIterator(bottleneck_file)
     else:
         raise NotImplemented('This dataset not implemented')
