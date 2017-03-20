@@ -4,7 +4,7 @@ def get(procedure):
         from . import train
         return train
     elif procedure == 'distill':
-        form . import distill
+        from . import distill
         return distill
     else:
         raise NotImplemented('This procedure not implemented yet')

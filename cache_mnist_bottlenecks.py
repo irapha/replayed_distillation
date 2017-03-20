@@ -48,5 +48,5 @@ if __name__ == '__main__':
 
     # save bottleneck_file
     all_bottlenecks = np.array(all_bottlenecks)
-    with open(FLAGS.bottleneck_file, 'w') as f:
+    with open(FLAGS.bottleneck_file, 'wb') as f:
         np.save(f, all_bottlenecks)

@@ -15,7 +15,7 @@ class MNISTIterator(object):
 
     def __init__(self, botteneck_file):
         self.og = input_data.read_data_sets("MNIST_data/", one_hot=True)
-        with open(bottleneck_file, 'r') as f:
+        with open(bottleneck_file, 'rb') as f:
             self.bottlenecks = np.load(f)
 
     def train_epoch_in_batches(self, batch_size):

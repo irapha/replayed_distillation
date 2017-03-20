@@ -20,6 +20,7 @@ flags.DEFINE_string('dataset', '', 'ImageNet or MNIST')
 flags.DEFINE_string('model', '', 'hinton1200, hinton800, lenet300100, lenet5, alexnet, vgg16')
 flags.DEFINE_integer('rng_seed', 42, 'RNG seed, fixed for consistency')
 flags.DEFINE_string('procedure', '', 'train, kd, irkd')
+flags.DEFINE_string('bottleneck_file', '', 'where the bottlenecks are stored')
 
 flags.DEFINE_integer('epochs', 10, 'Number of training epochs')
 flags.DEFINE_integer('train_batch_size', 64, 'number of examples to be used for training')
