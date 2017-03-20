@@ -38,7 +38,7 @@ if __name__ == '__main__':
     input_size, output_size = d.get_io_size(FLAGS.dataset)
     keep_inp, keep, temp, labels_temp = u.create_optional_params()
 
-    inp, labels = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, (keep_inp, keep, temp, labels_temp))
+    inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, (keep_inp, keep, temp, labels_temp))
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
 

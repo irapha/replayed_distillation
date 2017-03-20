@@ -10,8 +10,8 @@ import models as m
 
 from utils import ensure_dir_exists
 
-CHECKPOINT_DIR = 'summary/hinton1200/checkpoint/'
-PRETRAINED_MODEL = 'hinton1200'
+MODEL_META = 'summaries/hinton1200_mnist/checkpoint/hinton1200-8000.meta'
+MODEL_CHECKPOINT = 'summaries/hinton1200_mnist/checkpoint/hinton1200-8000'
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
@@ -53,9 +53,6 @@ def run(sess, f, data, placeholders, train_step, summary_op):
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
 
     with sess.as_default():
-        # restore old model
-        saver.restore(sess, tf.train.latest_checkpoint(CHECKPOINT_DIR))
-
         global_step = 0
 
         for i in range(f.epochs):
@@ -98,13 +95,20 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
 def create_placeholders(input_size, output_size, optionals):
-    keep_inp, keep, temp, labels_temp = optionals
+    #  keep_inp, keep, temp, labels_temp = optionals
 
-    inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
-    # create graph
-    # TODO: maybe do this from meta?
-    out = m.get(PRETRAINED_MODEL).create_model(inp, output_size, keep_inp, keep, temp)
+    with tf.Session() as sess:
+	new_saver = tf.train.import_meta_graph(MODEL_META)
+	new_saver.restore(sess, MODEL_CHECKPOINT)
+	inp = tf.get_collection('inputs')[0]
+	out = tf.get_collection('outputs')[0]
+
+	keep_inp = tf.get_collection('keep_prob_input')[0]
+	keep = tf.get_collection('keep_prob')[0]
+	temp = tf.get_collection('temp')[0]
+	#  labels_temp = tf.get_collection('labels_temp')[0]
+
     with tf.variable_scope('labels_sftmx'):
         labels = tf.nn.softmax(out)
 
-    return inp, labels
+    return inp, labels, keep_inp, keep, temp
