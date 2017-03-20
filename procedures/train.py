@@ -45,6 +45,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 
     summary_dir = os.path.join(f.summary_folder, f.run_name)
     train_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
+    trainbatch_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
 
     with sess.as_default():
@@ -58,18 +59,26 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                             #  keep_inp: 0.8, keep: 0.5})
                             keep_inp: 1.0, keep: 0.5})
 
-                train_writer.add_summary(summary, global_step)
+                trainbatch_writer.add_summary(summary, global_step)
 
                 if global_step % f.eval_interval == 0:
+                    # eval test
                     summaries = []
-
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={inp: test_batch_x, labels: test_batch_y,
                                     keep_inp: 1.0, keep: 1.0})
                         summaries.append(summary)
-
                     test_writer.add_summary(merge_summary_list(summaries, True), global_step)
+
+                    # eval train
+                    summaries = []
+                    for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
+                        summary = sess.run(summary_op,
+                                feed_dict={inp: train_batch_x, labels: train_batch_y,
+                                    keep_inp: 1.0, keep: 1.0})
+                        summaries.append(summary)
+                    train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
                 if global_step % f.checkpoint_interval == 0:
                     checkpoint_dir = os.path.join(summary_dir, 'checkpoint/')
