@@ -45,7 +45,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 
     summary_dir = os.path.join(f.summary_folder, f.run_name)
     train_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
-    trainbatch_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
+    trainbatch_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train_batch'), sess.graph)
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
 
     with sess.as_default():
