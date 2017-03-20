@@ -7,7 +7,7 @@ def create_model(inp, out_size, keep_inp=1.0, keep=1.0):
         with tf.variable_scope('fc1'):
             w = tf.Variable(tf.truncated_normal([int(inp.get_shape()[-1]), 800]), name='w')
             b = tf.Variable(tf.constant(0.1, shape=[800]), name='b')
-            z = tf.nn.relu(tf.matmul(inp_drop, w) + b, name='relu')
+            z = tf.nn.relu(tf.matmul(inp, w) + b, name='relu')
 
         with tf.variable_scope('fc2'):
             w = tf.Variable(tf.truncated_normal([800, 800]), name='w')
