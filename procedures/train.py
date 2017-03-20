@@ -85,5 +85,5 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                 if global_step % f.checkpoint_interval == 0:
                     checkpoint_dir = os.path.join(summary_dir, 'checkpoint/')
                     ensure_dir_exists(checkpoint_dir)
-                    checkpoint_file = os.path.join(checkpoint_dir, 'step{}'.format(global_step))
+                    checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
