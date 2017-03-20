@@ -92,7 +92,6 @@ def run(sess, f, data, placeholders, train_step, summary_op):
 
 def create_placeholders(input_size, output_size, optionals):
     keep_inp, keep, temp, labels_temp = optionals
-
     inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
     labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
     return inp, labels, keep_inp, keep, labels_temp

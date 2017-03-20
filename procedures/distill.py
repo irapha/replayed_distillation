@@ -60,7 +60,6 @@ def run(sess, f, data, placeholders, train_step, summary_op):
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={inp: batch_x, #labels: batch_y,
-                            #  'inputs': batch_x,
                             keep_inp: 1.0, keep: 0.5,
                             temp: 8.0, labels_temp: 8.0})
 
@@ -72,7 +71,6 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={inp: test_batch_x, #labels: test_batch_y,
-                                    #  'inputs': batch_x,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -83,7 +81,6 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={inp: train_batch_x, #labels: train_batch_y,
-                                    #  'inputs': batch_x,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -97,9 +94,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def create_placeholders(input_size, output_size, optionals):
-    #  keep_inp, keep, temp, labels_temp = optionals
-
+def create_placeholders(input_size, output_size, _):
     with tf.Session() as sess:
         new_saver = tf.train.import_meta_graph(MODEL_META)
         new_saver.restore(sess, MODEL_CHECKPOINT)
