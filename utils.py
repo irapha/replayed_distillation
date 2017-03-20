@@ -54,11 +54,11 @@ def create_optional_params():
     return keep_prob_input, keep_prob, temp, labels_temp
 
 def create_train_ops(h, labels):
-    with tf.variable_scope('xent'):
+    with tf.variable_scope('xent_distill'):
         loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
 
-    with tf.variable_scope('opt'):
+    with tf.variable_scope('opt_distill'):
         train_step = tf.train.AdamOptimizer().minimize(loss)
 
     return loss, train_step
