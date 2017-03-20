@@ -104,6 +104,7 @@ def create_placeholders(input_size, output_size, optionals):
         new_saver = tf.train.import_meta_graph(MODEL_META)
         new_saver.restore(sess, MODEL_CHECKPOINT)
 
+        inp = tf.get_collection('input')[0]
         out = tf.get_collection('output')[0]
         keep_inp = tf.get_collection('keep_inp')[0]
         keep = tf.get_collection('keep')[0]
