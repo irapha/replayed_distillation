@@ -49,7 +49,7 @@ if __name__ == '__main__':
     summary_op = u.create_summary_ops(loss, accuracy, top5)
 
     # initialize dataset interface
-    data = d.get(FLAGS.dataset)
+    data = d.get(FLAGS.dataset, FLAGS.bottleneck_file)
 
     # initialize session
     sess = tf.Session(u.get_sess_config(use_gpu=True))
