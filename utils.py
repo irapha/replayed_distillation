@@ -47,7 +47,7 @@ def save_log(log, summary_folder, run_name, log_file):
         f.write(json.dumps(log))
 
 def create_keep_probs():
-    with tf.variable_scope('input_drop'):
+    with tf.variable_scope('inp_drop'):
         keep_prob_input = tf.placeholder(tf.float32)
         keep_prob = tf.placeholder(tf.float32)
     return keep_prob_input, keep_prob
