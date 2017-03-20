@@ -91,6 +91,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
 def apply_label_temp(h, label_temp):
-    with tf.variable_scope('temp'):
+    with tf.variable_scope('label_temp'):
         h_soft = tf.div(h, label_temp)
+    with tf.variable_scope('tempd_sftmx'):
         return tf.nn.softmax(h_soft)
