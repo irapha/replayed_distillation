@@ -46,20 +46,25 @@ def save_log(log, summary_folder, run_name, log_file):
     with open(os.path.join(dirname, log_file), 'w') as f:
         f.write(json.dumps(log))
 
-def create_keep_probs():
+def create_optional_params():
     keep_prob_input = tf.placeholder(tf.float32, name='keep_prob_input')
     keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-    return keep_prob_input, keep_prob
+    temp = tf.placeholder(tf.float32, name='temp')
+    labels_temp = tf.placeholder(tf.float32, name='labels_temp')
+    return keep_prob_input, keep_prob, temp, labels_temp
 
 def create_placeholders(input_size, output_size):
     inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
     labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
     return inp, labels
 
-def create_train_ops(h, labels):
+def create_train_ops(h, labels, label_temp):
+    with tf.variable_scope('temp'):
+        h_soft = tf.div(h, label_temp)
+
     with tf.variable_scope('xent'):
         loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h_soft, name='sftmax_xent'))
 
     with tf.variable_scope('opt'):
         train_step = tf.train.AdamOptimizer().minimize(loss)

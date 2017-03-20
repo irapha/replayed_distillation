@@ -2,7 +2,7 @@
 # with 50% dropout on hidden and 20% on visible nodes
 import tensorflow as tf
 
-def create_model(inp, out_size, keep_inp=0.8, keep=0.5):
+def create_model(inp, out_size, keep_inp=0.8, keep=0.5, temp=1.0):
     with tf.variable_scope('784-1200-1200-10'):
         with tf.variable_scope('inp_drop'):
             inp_drop = tf.nn.dropout(inp, keep_prob=keep_inp)
@@ -24,4 +24,7 @@ def create_model(inp, out_size, keep_inp=0.8, keep=0.5):
             b = tf.Variable(tf.constant(0.1, shape=[out_size]), name='b')
             h = tf.matmul(z_drop, w) + b
 
-    return h
+        with tf.variable_scope('temp'):
+            h_soft = tf.div(h, temp)
+
+    return h_soft

@@ -36,10 +36,10 @@ if __name__ == '__main__':
     input_size, output_size = d.get_io_size(FLAGS.dataset)
     inp, labels = u.create_placeholders(input_size, output_size)
 
-    keep_inp, keep = u.create_keep_probs()
-    out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep)
+    keep_inp, keep, temp, labels_temp = u.create_optional_params()
+    out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
 
-    loss, train_step = u.create_train_ops(out, labels)
+    loss, train_step = u.create_train_ops(out, labels, labels_temp)
     accuracy, top5 = u.create_eval_ops(out, labels)
     summary_op = u.create_summary_ops(loss, accuracy, top5)
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # run training procedure
     p.get(FLAGS.procedure).run(sess, FLAGS, data,
-            (inp, labels, keep_inp, keep), train_step, summary_op)
+            (inp, labels, keep_inp, keep, temp, labels_temp), train_step, summary_op)
 
     # save log
     u.save_log(log, FLAGS.summary_folder, FLAGS.run_name, FLAGS.log_file)
