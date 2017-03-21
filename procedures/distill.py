@@ -74,7 +74,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: test_batch_x, #labels: test_batch_y,
                                     'temp_1:0': 1.0,
-                                    labels_evaldistill: batch_y,
+                                    labels_evaldistill: test_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -86,7 +86,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x, #labels: train_batch_y,
                                     'temp_1:0': 1.0,
-                                    labels_evaldistill: batch_y,
+                                    labels_evaldistill: test_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -106,7 +106,6 @@ def create_placeholders(input_size, output_size, _):
         new_saver.restore(sess, MODEL_CHECKPOINT)
 
         inp = tf.get_collection('input')[0]
-        print(repr(inp))
         out = tf.get_collection('output')[0]
         keep_inp = tf.get_collection('keep_inp')[0]
         keep = tf.get_collection('keep')[0]
