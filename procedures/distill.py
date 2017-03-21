@@ -62,7 +62,8 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
                             keep_inp: 1.0, keep: 1.0,
-                            'temp_1:0': 8.0, temp: 8.0})
+                            #  'temp_1:0': 8.0, temp: 8.0})
+                            'temp_1:0': 1.0, temp: 1.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
@@ -97,16 +98,15 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def create_placeholders(input_size, output_size, _):
-    with tf.Session() as sess:
-        new_saver = tf.train.import_meta_graph(MODEL_META)
-        new_saver.restore(sess, MODEL_CHECKPOINT)
+def create_placeholders(sess, input_size, output_size, _):
+    new_saver = tf.train.import_meta_graph(MODEL_META)
+    new_saver.restore(sess, MODEL_CHECKPOINT)
 
-        inp = tf.get_collection('input')[0]
-        out = tf.get_collection('output')[0]
-        keep_inp = tf.get_collection('keep_inp')[0]
-        keep = tf.get_collection('keep')[0]
-        labels_temp = tf.get_collection('labels_temp')[0]
+    inp = tf.get_collection('input')[0]
+    out = tf.get_collection('output')[0]
+    keep_inp = tf.get_collection('keep_inp')[0]
+    keep = tf.get_collection('keep')[0]
+    labels_temp = tf.get_collection('labels_temp')[0]
 
     with tf.variable_scope('labels_sftmx'):
         labels = tf.nn.softmax(out)

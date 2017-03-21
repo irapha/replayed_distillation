@@ -34,12 +34,15 @@ if __name__ == '__main__':
     np.random.seed(FLAGS.rng_seed)
     tf.set_random_seed(FLAGS.rng_seed)
 
+    # initialize session
+    sess = tf.Session(u.get_sess_config(use_gpu=True))
+
     # create graph
     input_size, output_size = d.get_io_size(FLAGS.dataset)
     #  keep_inp, keep, temp, labels_temp = u.create_optional_params()
     temp = tf.placeholder(tf.float32, name='temp')
 
-    inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, None)
+    inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
     labels_evaldistill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
@@ -61,9 +64,14 @@ if __name__ == '__main__':
     # initialize dataset interface
     data = d.get(FLAGS.dataset)
 
-    # initialize session
-    sess = tf.Session(u.get_sess_config(use_gpu=True))
-    sess.run(tf.global_variables_initializer())
+    # only initialize non-initialized vars:
+    uninitialized_vars = []
+    for var in tf.global_variables():
+        try:
+            sess.run(var)
+        except tf.errors.FailedPreconditionError:
+            uninitialized_vars.append(var)
+    sess.run(tf.variables_initializer(uninitialized_vars))
 
     # run training procedure
     p.get(FLAGS.procedure).run(sess, FLAGS, data,
