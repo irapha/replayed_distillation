@@ -42,7 +42,7 @@ def merge_summary_list(summary_list, do_print=False):
     return final_summary
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
-    inp, labels, keep_inp, keep, temp, labels_temp = placeholders
+    inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
     # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
 
     saver = tf.train.Saver(tf.global_variables())
@@ -74,7 +74,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: test_batch_x, #labels: test_batch_y,
                                     'temp_1:0': 1.0,
-                                    'outputs:0': batch_y,
+                                    labels_evaldistill: batch_y,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
@@ -86,7 +86,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x, #labels: train_batch_y,
                                     'temp_1:0': 1.0,
-                                    'outputs:0': batch_y,
+                                    labels_evaldistill: batch_y,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)

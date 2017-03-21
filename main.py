@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
     # run training procedure
     p.get(FLAGS.procedure).run(sess, FLAGS, data,
-            (inp, labels, keep_inp, keep, temp, labels_temp), train_step, summary_op, summary_op_evaldistill)
+            (inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
 
     # save log
     u.save_log(log, FLAGS.summary_folder, FLAGS.run_name, FLAGS.log_file)
