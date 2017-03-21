@@ -41,7 +41,7 @@ def merge_summary_list(summary_list, do_print=False):
 
     return final_summary
 
-def run(sess, f, data, placeholders, train_step, summary_op):
+def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
     inp, labels, keep_inp, keep, temp, labels_temp = placeholders
     # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
 
@@ -71,7 +71,7 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     # eval test
                     summaries = []
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
-                        summary = sess.run(summary_op,
+                        summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: test_batch_x, #labels: test_batch_y,
                                     'temp_1:0': 1.0,
                                     'outputs:0': batch_y,
@@ -83,9 +83,9 @@ def run(sess, f, data, placeholders, train_step, summary_op):
                     # eval train
                     summaries = []
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
-                        summary = sess.run(summary_op,
+                        summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x, #labels: train_batch_y,
-                                    'temp_1:0': 8.0,
+                                    'temp_1:0': 1.0,
                                     'outputs:0': batch_y,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
