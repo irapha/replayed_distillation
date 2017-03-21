@@ -58,12 +58,11 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
-                summary, _ = sess.run([summary_op, train_step],
-                        feed_dict={inp: batch_x, #labels: batch_y,
-                            'temp_1:0': 8.0,
-                            'outputs:0': batch_y,
-                            keep_inp: 1.0, keep: 0.5,
-                            temp: 8.0, labels_temp: 8.0})
+                summary, _ = sess.run([summary_op_evaldistill, train_step],
+                        feed_dict={inp: batch_x,
+                            labels_evalldistill: batch_y,
+                            keep_inp: 1.0, keep: 1.0,
+                            'temp_1:0': 8.0, temp: 8.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
@@ -72,11 +71,10 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     summaries = []
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
                         summary = sess.run(summary_op_evaldistill,
-                                feed_dict={inp: test_batch_x, #labels: test_batch_y,
-                                    'temp_1:0': 1.0,
+                                feed_dict={inp: test_batch_x,
                                     labels_evaldistill: test_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
-                                    temp: 1.0, labels_temp: 1.0})
+                                    'temp_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     test_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -84,11 +82,10 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     summaries = []
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
                         summary = sess.run(summary_op_evaldistill,
-                                feed_dict={inp: train_batch_x, #labels: train_batch_y,
-                                    'temp_1:0': 1.0,
+                                feed_dict={inp: train_batch_x,
                                     labels_evaldistill: train_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
-                                    temp: 1.0, labels_temp: 1.0})
+                                    'temp_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
