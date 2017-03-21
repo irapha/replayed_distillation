@@ -40,7 +40,7 @@ if __name__ == '__main__':
     temp = tf.placeholder(tf.float32, name='temp')
 
     inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(input_size, output_size, None)
-    labels_eval_distill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
+    labels_evaldistill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
 
@@ -51,12 +51,12 @@ if __name__ == '__main__':
     #  tf.add_to_collection('labels_temp', temp) # not wrong dw
 
     loss, train_step = u.create_train_ops(out, labels)
-    loss_eval_distill, _ = u.create_train_ops(out, labels_evall_distill, scope='evaldistill')
+    loss_evaldistill, _ = u.create_train_ops(out, labels_evaldistill, scope='evaldistill')
 
     accuracy, top5 = u.create_eval_ops(out, labels)
     accuracy_evaldistill, top5_evaldistill = u.create_eval_ops(out, labels_evaldistill, scope='evaldistill')
     summary_op = u.create_summary_ops(loss, accuracy, top5)
-    summary_op_evaldistill = u.create_summary_ops(loss_evalldistill, accuracy_evalldistill, top5_evalldistill)
+    summary_op_evaldistill = u.create_summary_ops(loss_evaldistill, accuracy_evaldistill, top5_evaldistill)
 
     # initialize dataset interface
     data = d.get(FLAGS.dataset)
