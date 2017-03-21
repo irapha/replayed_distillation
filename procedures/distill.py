@@ -60,7 +60,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
-                            labels_evalldistill: batch_y,
+                            labels_evaldistill: batch_y,
                             keep_inp: 1.0, keep: 1.0,
                             'temp_1:0': 8.0, temp: 8.0})
 
