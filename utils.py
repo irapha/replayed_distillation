@@ -77,7 +77,7 @@ def create_summary_ops(loss, accuracy, top5):
     loss_summary_op = tf.summary.scalar('loss', loss)
     accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
     top5_summary_op = tf.summary.scalar('top5 accuracy', top5)
-    return tf.summary.merge_all()
+    return tf.summary.merge([loss_summary_op, accuracy_summary_op, top5_summary_op])
 
 def ensure_dir_exists(dir_name):
     if not os.path.exists(dir_name):
