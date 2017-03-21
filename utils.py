@@ -54,25 +54,23 @@ def create_optional_params():
     return keep_prob_input, keep_prob, temp, labels_temp
 
 def create_train_ops(h, labels, scope='train_ops'):
-    with tf.variable_scope(scope):
-        with tf.variable_scope('xent_distill'):
-            loss = tf.reduce_mean(
-                    tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+    with tf.variable_scope('xent_distill_' + scope):
+        loss = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
 
-        with tf.variable_scope('opt_distill'):
-            train_step = tf.train.AdamOptimizer().minimize(loss)
+    with tf.variable_scope('opt_distill_' + scope):
+        train_step = tf.train.AdamOptimizer().minimize(loss)
 
     return loss, train_step
 
 def create_eval_ops(y, y_, scope='eval_ops'):
-    with tf.variable_scope(scope):
-        with tf.variable_scope('eval_distill'):
-            correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    with tf.variable_scope('eval_distill_' + scope):
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-            y_dense = tf.where(tf.equal(y_, 1))[:,1]
-            correct_top5 = tf.nn.in_top_k(y, y_dense, 5)
-            top5_accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        y_dense = tf.where(tf.equal(y_, 1))[:,1]
+        correct_top5 = tf.nn.in_top_k(y, y_dense, 5)
+        top5_accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return accuracy, top5_accuracy
 
 def create_summary_ops(loss, accuracy, top5):
