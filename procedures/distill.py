@@ -86,7 +86,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x, #labels: train_batch_y,
                                     'temp_1:0': 1.0,
-                                    labels_evaldistill: test_batch_y,
+                                    labels_evaldistill: train_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
                                     temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
