@@ -1,12 +1,15 @@
 """
-This training procedure will train a student network from scratch using raw data
-from the dataset, and activations from a teacher model.
+This training procedure will train a student network from scratch using
+replayed data sampled from a teacher model, and the sampled activations from
+that teacher.
 """
 import numpy as np
 import os
+import sys
 import tensorflow as tf
-import utils as u
+
 import models as m
+import utils as u
 
 from utils import ensure_dir_exists
 
@@ -41,9 +44,52 @@ def merge_summary_list(summary_list, do_print=False):
 
     return final_summary
 
+def compute_class_statistics(sess, inp, keep_inp, keep, data, temp):
+    all_activations = {}
+    for batch_x, batch_y in data.train_epoch_in_batches(50):
+        #  batch_out = sess.run('784-1200-1200-10/temp/div:0',
+        batch_out = sess.run('labels_sftmx/Reshape_1:0',
+                feed_dict={inp: batch_x, keep_inp: 1.0, keep: 1.0, 'temp_1:0': temp})
+
+        for act, y in zip(batch_out, batch_y):
+            clas = np.where(y == 1)[0][0]
+            if clas not in all_activations:
+                all_activations[clas] = []
+            all_activations[clas].append(act)
+
+
+    # consolidate them:
+    means = {}
+    cov = {}
+    for k, v in all_activations.items():
+        means[k] = np.mean(v, axis=0)
+        cov[k] = np.cov(np.transpose(v))
+
+    print('0')
+    print(all_activations[0])
+    print('min: {}'.format(np.min(all_activations[0], axis=0)))
+    print('max: {}'.format(np.max(all_activations[0], axis=0)))
+    print('mean: {}'.format(means[0]))
+    print('var: {}'.format(np.var(all_activations[0], axis=0)))
+    print(cov[0])
+
+    return means, cov
+
+def sample_from_stats(stats, clas, batch_size, out_size):
+    means, cov = stats
+    out_size = means[list(means.keys())[0]].shape[0]
+    gauss = np.random.normal(size=(batch_size, out_size))
+    return means[clas] + np.matmul(gauss, cov[clas])
+
+
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
-    # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
+
+    # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
+    stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 100.0)
+    print(sample_from_stats(stats, 0, 1, 10))
+
+    sys.exit(0)
 
     saver = tf.train.Saver(tf.global_variables())
 
@@ -62,7 +108,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
                             keep_inp: 1.0, keep: 1.0,
-                            'temp_1:0': 100.0, temp: 100.0})
+                            'temp_1:0': 8.0, temp: 8.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
