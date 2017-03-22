@@ -81,24 +81,29 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     gauss = np.random.normal(size=(batch_size, out_size))
     return means[clas] + np.matmul(gauss, cov[clas])
 
-def sample_images(sess, stats, clas, batch_size, latent_placeholder, recreate_op):
+def sample_images(sess, stats, clas, batch_size, latent_placeholder, input_var, recreate_op):
     latent = sample_from_stats(stats, clas, batch_size, 10)
 
-    recreated_imgs = sess.run(recreate_op,
-            feed_dict={latent_placeholder: latent})
+    for _ in range(100):
+        sess.run(recreate_op,
+                feed_dict={latent_placeholder: latent})
 
-    return recreated_imgs
+    return sess.run(input_var)
 
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
 
-    # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
-    stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
+    # create same model with constants instead of vars. And a Variable as input
     latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
-    recreate_op = m.get('hinton1200').create_inverse_model(sess, latent_placeholder)
-    with tf.variable_scope('stopp'):
-        recreate_op = tf.stop_gradient(recreate_op)
+    input_var = tf.Variable(tf.truncated_normal([None, 784]), name='recreated_imgs')
+    latent_recreated = m.get('hinton1200').create_constant_model(sess, input_var)
+    with tf.variable_scope('xent_recreated'):
+        recreate_loss = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
+    with tf.variable_scope('opt_recreated'):
+        recreate_op = tf.train.AdamOptimizer().minimize(recreate_loss)
+
     u.init_uninitted_vars(sess)
 
     saver = tf.train.Saver(tf.global_variables())
@@ -112,8 +117,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         global_step = 0
 
 
-        print(sample_images(sess, stats, 0, 1, latent_placeholder, recreate_op))
-
+        # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
+        stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
+        print(repr(sample_images(sess, stats, 0, 1, latent_placeholder, input_var, recreate_op)))
 
         sys.exit(0)
 

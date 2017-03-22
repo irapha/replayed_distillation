@@ -30,22 +30,22 @@ def create_model(inp, out_size, keep_inp=0.8, keep=0.5, temp=1.0):
 
     return h_soft
 
-def create_inverse_model(sess, inp):
-    with tf.variable_scope('784-1200-1200-10_inv'):
+def create_constant_model(sess, inp):
+    with tf.variable_scope('784-1200-1200-10_const'):
+        with tf.variable_scope('fc1'):
+            w = tf.constant(sess.run('784-1200-1200-10/fc1/w:0'), name='w')
+            b = tf.constant(sess.run('784-1200-1200-10/fc1/b:0'), name='b')
+            z = tf.nn.relu(tf.matmul(inp, w) + b, name='relu')
 
-        with tf.variable_scope('fc3_inv'):
-            w = tf.Variable(np.linalg.pinv(sess.run('784-1200-1200-10/fc3/w:0')), name='w_inv')
-            b = tf.Variable(sess.run('784-1200-1200-10/fc3/b:0'), name='b_inv')
-            h = tf.matmul(tf.subtract(inp, b), w)
+        with tf.variable_scope('fc2'):
+            w = tf.constant(sess.run('784-1200-1200-10/fc2/w:0'), name='w')
+            b = tf.constant(sess.run('784-1200-1200-10/fc2/b:0'), name='b')
+            z = tf.nn.relu(tf.matmul(z, w) + b, name='relu')
 
-        with tf.variable_scope('fc2_inv'):
-            w = tf.Variable(np.linalg.pinv(sess.run('784-1200-1200-10/fc2/w:0')), name='w_inv')
-            b = tf.Variable(sess.run('784-1200-1200-10/fc2/b:0'), name='b_inv')
-            z = tf.matmul(tf.subtract(tf.nn.relu(h), b), w)
+        with tf.variable_scope('fc3'):
+            w = tf.constant(sess.run('784-1200-1200-10/fc3/w:0'), name='w')
+            b = tf.constant(sess.run('784-1200-1200-10/fc3/b:0'), name='b')
+            h = tf.matmul(z, w) + b
 
-        with tf.variable_scope('fc1_inv'):
-            w = tf.Variable(np.linalg.pinv(sess.run('784-1200-1200-10/fc1/w:0')), name='w_inv')
-            b = tf.Variable(sess.run('784-1200-1200-10/fc1/b:0'), name='b_inv')
-            z = tf.matmul(tf.subtract(tf.nn.relu(z), b), w)
+    return h
 
-    return z
