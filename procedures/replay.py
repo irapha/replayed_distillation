@@ -65,13 +65,13 @@ def compute_class_statistics(sess, inp, keep_inp, keep, data, temp):
         means[k] = np.mean(v, axis=0)
         cov[k] = np.cov(np.transpose(v))
 
-    print('0')
-    print(all_activations[0])
-    print('min: {}'.format(np.min(all_activations[0], axis=0)))
-    print('max: {}'.format(np.max(all_activations[0], axis=0)))
-    print('mean: {}'.format(means[0]))
-    print('var: {}'.format(np.var(all_activations[0], axis=0)))
-    print(cov[0])
+    #  print('0')
+    #  print(all_activations[0])
+    #  print('min: {}'.format(np.min(all_activations[0], axis=0)))
+    #  print('max: {}'.format(np.max(all_activations[0], axis=0)))
+    #  print('mean: {}'.format(means[0]))
+    #  print('var: {}'.format(np.var(all_activations[0], axis=0)))
+    #  print(cov[0])
 
     return means, cov
 
@@ -86,7 +86,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
 
     # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
-    stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 100.0)
+    stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
     print(sample_from_stats(stats, 0, 1, 10))
 
     sys.exit(0)
