@@ -81,8 +81,11 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     gauss = np.random.normal(size=(batch_size, out_size))
     return means[clas] + np.matmul(gauss, cov[clas])
 
-def sample_images(sess, stats, clas, batch_size, latent_placeholder, input_var, recreate_op):
+def sample_images(sess, stats, clas, batch_size, input_placeholder, latent_placeholder, input_var, assign_op, recreate_op):
     latent = sample_from_stats(stats, clas, batch_size, 10)
+
+    # reinitialize input_var to U(0,1)
+    sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
 
     for _ in range(100):
         sess.run(recreate_op,
@@ -96,7 +99,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
     # create same model with constants instead of vars. And a Variable as input
     latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
-    input_var = tf.Variable(tf.truncated_normal([None, 784]), name='recreated_imgs')
+    input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
+    input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
+    assign_op = tf.assign(input_var, input_placeholder)
     latent_recreated = m.get('hinton1200').create_constant_model(sess, input_var)
     with tf.variable_scope('xent_recreated'):
         recreate_loss = tf.reduce_mean(
@@ -119,7 +124,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
-        print(repr(sample_images(sess, stats, 0, 1, latent_placeholder, input_var, recreate_op)))
+        print(repr(sample_images(sess, stats, 0, f.train_batch_size, input_placeholder, latent_placeholder, input_var, assign_op, recreate_op)))
 
         sys.exit(0)
 
