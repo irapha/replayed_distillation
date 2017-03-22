@@ -47,8 +47,8 @@ def merge_summary_list(summary_list, do_print=False):
 def compute_class_statistics(sess, inp, keep_inp, keep, data, temp):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
-        #  batch_out = sess.run('784-1200-1200-10/temp/div:0',
-        batch_out = sess.run('labels_sftmx/Reshape_1:0',
+        #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
+        batch_out = sess.run('784-1200-1200-10/temp/div:0',
                 feed_dict={inp: batch_x, keep_inp: 1.0, keep: 1.0, 'temp_1:0': temp})
 
         for act, y in zip(batch_out, batch_y):
@@ -81,15 +81,25 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     gauss = np.random.normal(size=(batch_size, out_size))
     return means[clas] + np.matmul(gauss, cov[clas])
 
+def sample_images(sess, stats, clas, batch_size, latent_placeholder, recreate_op):
+    latent = sample_from_stats(stats, clas, batch_size, 10)
+
+    recreated_imgs = sess.run(recreate_op,
+            feed_dict={latent_placeholder: latent})
+
+    return recreated_imgs
+
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
 
     # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
     stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
-    print(sample_from_stats(stats, 0, 1, 10))
-
-    sys.exit(0)
+    latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
+    recreate_op = m.get('hinton1200').create_inverse_model(sess, latent_placeholder)
+    with tf.variable_scope('stopp'):
+        recreate_op = tf.stop_gradient(recreate_op)
+    u.init_uninitted_vars(sess)
 
     saver = tf.train.Saver(tf.global_variables())
 
@@ -100,6 +110,13 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
     with sess.as_default():
         global_step = 0
+
+
+        print(sample_images(sess, stats, 0, 1, latent_placeholder, recreate_op))
+
+
+        sys.exit(0)
+
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))

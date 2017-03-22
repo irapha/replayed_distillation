@@ -88,3 +88,12 @@ def get_sess_config(use_gpu=True):
         return None
     else:
         return tf.ConfigProto(device_count={'GPU': 0})
+
+def init_uninitted_vars(sess):
+    uninitialized_vars = []
+    for var in tf.global_variables():
+        try:
+            sess.run(var)
+        except tf.errors.FailedPreconditionError:
+            uninitialized_vars.append(var)
+    sess.run(tf.variables_initializer(uninitialized_vars))

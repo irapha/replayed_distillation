@@ -65,13 +65,7 @@ if __name__ == '__main__':
     data = d.get(FLAGS.dataset)
 
     # only initialize non-initialized vars:
-    uninitialized_vars = []
-    for var in tf.global_variables():
-        try:
-            sess.run(var)
-        except tf.errors.FailedPreconditionError:
-            uninitialized_vars.append(var)
-    sess.run(tf.variables_initializer(uninitialized_vars))
+    u.init_uninitted_vars(sess)
 
     # run training procedure
     p.get(FLAGS.procedure).run(sess, FLAGS, data,
