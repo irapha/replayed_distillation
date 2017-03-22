@@ -62,7 +62,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
                             keep_inp: 1.0, keep: 1.0,
-                            'temp_1:0': 100.0, temp: 100.0})
+                            'temp_1:0': 80.0, temp: 80.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
