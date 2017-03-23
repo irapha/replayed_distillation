@@ -7,6 +7,9 @@ import numpy as np
 import os
 import sys
 import tensorflow as tf
+import cv2
+import scipy.stats as st
+import scipy
 
 import models as m
 import utils as u
@@ -57,21 +60,12 @@ def compute_class_statistics(sess, inp, keep_inp, keep, data, temp):
                 all_activations[clas] = []
             all_activations[clas].append(act)
 
-
     # consolidate them:
     means = {}
     cov = {}
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
         cov[k] = np.cov(np.transpose(v))
-
-    #  print('0')
-    #  print(all_activations[0])
-    #  print('min: {}'.format(np.min(all_activations[0], axis=0)))
-    #  print('max: {}'.format(np.max(all_activations[0], axis=0)))
-    #  print('mean: {}'.format(means[0]))
-    #  print('var: {}'.format(np.var(all_activations[0], axis=0)))
-    #  print(cov[0])
 
     return means, cov
 
@@ -81,17 +75,82 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     gauss = np.random.normal(size=(batch_size, out_size))
     return means[clas] + np.matmul(gauss, cov[clas])
 
-def sample_images(sess, stats, clas, batch_size, input_placeholder, latent_placeholder, input_var, assign_op, recreate_op):
-    latent = sample_from_stats(stats, clas, batch_size, 10)
+def gkern(size=28, sig=4):
+    g = cv2.getGaussianKernel(size, sig)
+    gi = cv2.getGaussianKernel(size, sig).T
+    normd = np.matmul(g, gi)
+    normd = 0.8 * (normd / normd.max())
+    normd += 0.2 * np.random.uniform(size=[size, size])
+    return normd
+
+def sample_images(sess, stats, clas, batch_size, input_placeholder,
+        latent_placeholder, input_var, assign_op, recreate_op, data,
+        latent_recreated, recreate_loss):
+    #  latent = sample_from_stats(stats, clas, batch_size, 10)
+    latent = [data.og.train.labels[0]] * batch_size
 
     # reinitialize input_var to U(0,1)
-    sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
+    #  sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
+    #  sess.run(assign_op, feed_dict={input_placeholder: 0.5*np.ones([batch_size, 784])})
+    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
+    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
-    for _ in range(100):
-        sess.run(recreate_op,
+    for i in range(10000):
+        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
                 feed_dict={latent_placeholder: latent})
 
-    return sess.run(input_var)
+    cv2.imshow('input', reshape_to_grid(input_kernels))
+
+    sampled_images = list(sess.run(input_var))
+
+    all_medians = []
+    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+
+    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
+    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+
+    for i in range(10000):
+        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
+                feed_dict={latent_placeholder: latent})
+
+    sampled_images.extend(sess.run(input_var))
+    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+
+    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
+    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+
+    for i in range(10000):
+        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
+                feed_dict={latent_placeholder: latent})
+
+    sampled_images.extend(sess.run(input_var))
+    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+
+    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
+    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+
+    for i in range(10000):
+        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
+                feed_dict={latent_placeholder: latent})
+
+    sampled_images.extend(sess.run(input_var))
+    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+
+    cv2.imshow('median', )
+
+    return sampled_images[:batch_size]
+
+def unblockshaped(arr, h, w):
+    n, nrows, ncols = arr.shape
+    return (arr.reshape(h//nrows, -1, nrows, ncols)
+               .swapaxes(1,2)
+               .reshape(h, w))
+
+def reshape_to_grid(arr):
+    grid = np.array([np.reshape(img, (28, 28)) for img in arr])
+    size = int(28 * np.sqrt(grid.shape[0]))
+    # TODO: fixxx
+    return unblockshaped(grid, int(28), int(28 * grid.shape[0]))
 
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
@@ -107,7 +166,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         recreate_loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
     with tf.variable_scope('opt_recreated'):
-        recreate_op = tf.train.AdamOptimizer().minimize(recreate_loss)
+        recreate_op = tf.train.AdamOptimizer(learning_rate=0.1).minimize(recreate_loss)
 
     u.init_uninitted_vars(sess)
 
@@ -124,7 +183,16 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
-        print(repr(sample_images(sess, stats, 0, f.train_batch_size, input_placeholder, latent_placeholder, input_var, assign_op, recreate_op)))
+        sampled_images = sample_images(sess, stats, 0, f.train_batch_size,
+                input_placeholder, latent_placeholder, input_var, assign_op,
+                recreate_op, data, latent_recreated, recreate_loss)
+
+
+        grid = reshape_to_grid(sampled_images)
+        cv2.imshow('og_latents', reshape_to_grid(data.og.train.images[:64]))
+        cv2.imshow('sampled', grid)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
         sys.exit(0)
 
