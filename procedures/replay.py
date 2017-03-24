@@ -85,8 +85,9 @@ def gkern(size=28, sig=4, noise=0.1):
 
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
-        latent_recreated, recreate_loss):
+        latent_recreated, recreate_loss, reinit_op):
     #  latent = sample_from_stats(stats, clas, batch_size, 10)
+    # TODO: keep trying with not sampling. reason being its easier to understand whats happen
     latent = [data.og.train.labels[0]] * batch_size
 
     # reinitialize input_var to U(0,1)
@@ -98,16 +99,28 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     for noise in [0.0, 0.05, 0.1, 0.15, 0.2]:
         sampled_images = []
         for _ in range(5):
+            sess.run(reinit_op)
             input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(batch_size)]
             sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
+            all_inputs.append(np.reshape(sess.run(input_var)[0], [28, 28]))
+
             for i in range(10000):
-                _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
+                _, los = sess.run([recreate_op, recreate_loss],
                         feed_dict={latent_placeholder: latent})
+                if i < 25: print(los)
 
             sampled_images.extend(sess.run(input_var))
             all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
-            all_inputs.append(np.reshape(input_kernels[0], [28, 28]))
+            print('{} {}'.format(noise, len(sampled_images)))
+            #  cv2.imshow('progress', all_medians[-1])
+            #  cv2.waitKey(0)
+            #  cv2.destroyAllWindows()
+
+    # TODO: to pick the best values of noise and number of examples,
+    # sample from og dataset and pick params that minimize the earth mover distance
+    # between the generated images and the samples from og.
+    # then do same for learning rates.
 
     cv2.imshow('median', reshape_to_grid(all_medians))
     cv2.imshow('input', reshape_to_grid(all_inputs))
@@ -134,18 +147,21 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
 
     # create same model with constants instead of vars. And a Variable as input
-    latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
-    input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
-    input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
-    assign_op = tf.assign(input_var, input_placeholder)
-    latent_recreated = m.get('hinton1200').create_constant_model(sess, input_var)
-    with tf.variable_scope('xent_recreated'):
-        recreate_loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
-    with tf.variable_scope('opt_recreated'):
-        recreate_op = tf.train.damOptimizer(learning_rate=0.05).minimize(recreate_loss)
+    with tf.variable_scope('const'):
+        latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
+        input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
+        input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
+        sess.run(tf.variables_initializer([input_var], name='init_input'))
+        assign_op = tf.assign(input_var, input_placeholder)
+        latent_recreated = m.get('hinton1200').create_constant_model(sess, input_var)
+        with tf.variable_scope('xent_recreated'):
+            recreate_loss = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
+        with tf.variable_scope('opt_recreated'):
+            recreate_op = tf.train.AdamOptimizer(learning_rate=0.1).minimize(recreate_loss)
 
-    u.init_uninitted_vars(sess)
+        reinit_op = tf.variables_initializer(u.get_uninitted_vars(sess), name='reinit_op')
+        sess.run(reinit_op)
 
     saver = tf.train.Saver(tf.global_variables())
 
@@ -162,7 +178,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
         sampled_images = sample_images(sess, stats, 0, f.train_batch_size,
                 input_placeholder, latent_placeholder, input_var, assign_op,
-                recreate_op, data, latent_recreated, recreate_loss)
+                recreate_op, data, latent_recreated, recreate_loss, reinit_op)
 
 
         grid = reshape_to_grid(sampled_images)
