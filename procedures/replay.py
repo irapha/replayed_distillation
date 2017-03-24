@@ -75,12 +75,12 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     gauss = np.random.normal(size=(batch_size, out_size))
     return means[clas] + np.matmul(gauss, cov[clas])
 
-def gkern(size=28, sig=4):
+def gkern(size=28, sig=4, noise=0.1):
     g = cv2.getGaussianKernel(size, sig)
     gi = cv2.getGaussianKernel(size, sig).T
     normd = np.matmul(g, gi)
-    normd = 0.8 * (normd / normd.max())
-    normd += 0.2 * np.random.uniform(size=[size, size])
+    normd = (1.0 - noise) * (normd / normd.max())
+    normd += noise * np.random.uniform(size=[size, size])
     return normd
 
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
@@ -92,51 +92,25 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     # reinitialize input_var to U(0,1)
     #  sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
     #  sess.run(assign_op, feed_dict={input_placeholder: 0.5*np.ones([batch_size, 784])})
+
+    sampled_images = []
+    all_medians = []
     input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
-    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-
-    for i in range(10000):
-        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
-                feed_dict={latent_placeholder: latent})
-
     cv2.imshow('input', reshape_to_grid(input_kernels))
 
-    sampled_images = list(sess.run(input_var))
+    for noise in [0.0, 0.05, 0.1, 0.15, 0.2]:
+        for _ in range(5):
+            input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(batch_size)]
+            sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
-    all_medians = []
-    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+            for i in range(10000):
+                _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
+                        feed_dict={latent_placeholder: latent})
 
-    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
-    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+            sampled_images.extend(sess.run(input_var))
+            all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
 
-    for i in range(10000):
-        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
-                feed_dict={latent_placeholder: latent})
-
-    sampled_images.extend(sess.run(input_var))
-    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
-
-    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
-    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-
-    for i in range(10000):
-        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
-                feed_dict={latent_placeholder: latent})
-
-    sampled_images.extend(sess.run(input_var))
-    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
-
-    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
-    sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-
-    for i in range(10000):
-        _, lat, inp, los= sess.run([recreate_op, latent_recreated, input_var, recreate_loss],
-                feed_dict={latent_placeholder: latent})
-
-    sampled_images.extend(sess.run(input_var))
-    all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
-
-    cv2.imshow('median', )
+    cv2.imshow('median', reshape_to_grid(all_medians))
 
     return sampled_images[:batch_size]
 
@@ -146,11 +120,14 @@ def unblockshaped(arr, h, w):
                .swapaxes(1,2)
                .reshape(h, w))
 
+def reshape_to_row(arr):
+    grid = np.array([np.reshape(img, (28, 28)) for img in arr])
+    return unblockshaped(grid, int(28), int(28 * grid.shape[0]))
+
 def reshape_to_grid(arr):
     grid = np.array([np.reshape(img, (28, 28)) for img in arr])
     size = int(28 * np.sqrt(grid.shape[0]))
-    # TODO: fixxx
-    return unblockshaped(grid, int(28), int(28 * grid.shape[0]))
+    return unblockshaped(grid, size, size)
 
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
