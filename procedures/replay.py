@@ -93,12 +93,12 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     #  sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
     #  sess.run(assign_op, feed_dict={input_placeholder: 0.5*np.ones([batch_size, 784])})
 
-    sampled_images = []
-    all_medians = []
     input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
-    cv2.imshow('input', reshape_to_grid(input_kernels))
 
+    all_medians = []
+    all_inputs = []
     for noise in [0.0, 0.05, 0.1, 0.15, 0.2]:
+        sampled_images = []
         for _ in range(5):
             input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(batch_size)]
             sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
@@ -109,8 +109,10 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
             sampled_images.extend(sess.run(input_var))
             all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+            all_inputs.append(np.reshape(input_kernels[0], [28, 28]))
 
     cv2.imshow('median', reshape_to_grid(all_medians))
+    cv2.imshow('input', reshape_to_grid(all_inputs))
 
     return sampled_images[:batch_size]
 
