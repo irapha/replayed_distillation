@@ -93,8 +93,6 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     #  sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
     #  sess.run(assign_op, feed_dict={input_placeholder: 0.5*np.ones([batch_size, 784])})
 
-    input_kernels = [np.reshape(gkern(), [784]) for _ in range(batch_size)]
-
     all_medians = []
     all_inputs = []
     for noise in [0.0, 0.05, 0.1, 0.15, 0.2]:
@@ -145,7 +143,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         recreate_loss = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
     with tf.variable_scope('opt_recreated'):
-        recreate_op = tf.train.AdamOptimizer(learning_rate=0.1).minimize(recreate_loss)
+        recreate_op = tf.train.damOptimizer(learning_rate=0.05).minimize(recreate_loss)
 
     u.init_uninitted_vars(sess)
 
