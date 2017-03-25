@@ -86,28 +86,40 @@ def gkern(size=28, sig=4, noise=0.1):
 
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
-        latent_recreated, recreate_loss, reinit_op):
+        latent_recreated, recreate_loss, reinit_op, temp_recreated):
 
     # these hyper params can be tuned
     num_examples_per_median = 64
     noise = 0.1
 
-    latent = np.zeros([10])
-    latent[clas] = 1.0
-    latent = [latent] * (num_examples_per_median)
-    #  latent = sample_from_stats(stats, clas, 1, 10)
-    #  latent = [latent[0]] * batch_size
+    all_latents = []
+    #  latent = np.zeros([10])
+    #  latent[clas] = 1.0
+    #  all_latents.append(latent)
+    #  latent = [latent] * (num_examples_per_median)
+    latent = sample_from_stats(stats, clas, 1, 10)
+    all_latents.append(latent[0])
+    latent = [latent[0]] * batch_size
 
     all_medians = []
     for i in range(batch_size):
+        print('\tmedian: {}'.format(i))
         # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
         sess.run(reinit_op)
         input_kernels = [np.reshape(gkern(noise=0.1), [784]) for _ in range(num_examples_per_median)]
-        sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+        sess.run(assign_op, feed_dict={input_placeholder: input_kernels, temp_recreated: 8.0})
         for i in range(10000):
             _, los = sess.run([recreate_op, recreate_loss],
                     feed_dict={latent_placeholder: latent})
             #  if i < 25: print(los)
+
+        # TODO: remove
+        cv2.imshow('grid', reshape_to_grid(sess.run(input_var)))
+        cv2.imshow('median', np.reshape(np.median(sess.run(input_var), axis=0), [28,28]))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        sys.exit(0)
+
         all_medians.append(np.median(sess.run(input_var), axis=0))
 
     final_latent = np.zeros([10])
@@ -132,13 +144,15 @@ def reshape_to_grid(arr):
 
 def compute_optimized_examples(sess, stats, train_batch_size,
         input_placeholder, latent_placeholder, input_var, assign_op,
-        recreate_op, data, latent_recreated, recreate_loss, reinit_op):
+        recreate_op, data, latent_recreated, recreate_loss, reinit_op,
+        temp_recreated):
     opt = {}
     for clas in range(10):
         print('clas: {}'.format(clas))
         opt[clas] = sample_images(sess, stats, clas, train_batch_size,
                 input_placeholder, latent_placeholder, input_var, assign_op,
-                recreate_op, data, latent_recreated, recreate_loss, reinit_op)
+                recreate_op, data, latent_recreated, recreate_loss, reinit_op,
+                temp_recreated)
     return opt
 
 
@@ -150,9 +164,10 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
         input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
         input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
+        temp_recreated = tf.placeholder(tf.float32, name='temp_recreated')
         sess.run(tf.variables_initializer([input_var], name='init_input'))
         assign_op = tf.assign(input_var, input_placeholder)
-        latent_recreated = m.get('hinton1200').create_constant_model(sess, input_var)
+        latent_recreated = tf.div(m.get('hinton1200').create_constant_model(sess, input_var), temp_recreated)
         with tf.variable_scope('xent_recreated'):
             recreate_loss = tf.reduce_mean(
                     tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
@@ -178,7 +193,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         data_optimized = compute_optimized_examples(sess, stats,
                 f.train_batch_size, input_placeholder, latent_placeholder,
                 input_var, assign_op, recreate_op, data, latent_recreated,
-                recreate_loss, reinit_op)
+                recreate_loss, reinit_op, temp_recreated)
 
         for k, v in data_optimized.items():
             cv2.imshow('grid', reshape_to_grid(v))
