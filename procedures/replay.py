@@ -73,6 +73,7 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     means, cov = stats
     out_size = means[list(means.keys())[0]].shape[0]
     gauss = np.random.normal(size=(batch_size, out_size))
+    gauss = np.random.normal(size=(batch_size, out_size))
     return means[clas] + np.matmul(gauss, cov[clas])
 
 def gkern(size=28, sig=4, noise=0.1):
@@ -86,33 +87,68 @@ def gkern(size=28, sig=4, noise=0.1):
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
         latent_recreated, recreate_loss, reinit_op):
-    #  latent = sample_from_stats(stats, clas, batch_size, 10)
+    #  latent = sample_from_stats(stats, clas, 1, 10)
+    #  latent = [latent[0]] * batch_size
     # TODO: keep trying with not sampling. reason being its easier to understand whats happen
-    latent = [data.og.train.labels[0]] * batch_size
+
+    # these hyper params can be tuned
+    num_examples_per_median = 64
+    noise = 0.1
+
+    latent = np.zeros([10])
+    latent[clas] = 1.0
+    latent = [latent] * (num_examples_per_median)
+
+    all_medians = []
+    for i in range(batch_size):
+        # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
+        sess.run(reinit_op)
+        input_kernels = [np.reshape(gkern(noise=0.1), [784]) for _ in range(num_examples_per_median)]
+        sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+        for i in range(10000):
+            _, los = sess.run([recreate_op, recreate_loss],
+                    feed_dict={latent_placeholder: latent})
+            #  if i < 25: print(los)
+        all_medians.append(np.median(sess.run(input_var), axis=0))
+
+    final_latent = np.zeros([10])
+    final_latent[clas] = 1.0
+    final_latent = [final_latent] * (batch_size)
+    return all_medians, final_latent
 
     # reinitialize input_var to U(0,1)
     #  sess.run(assign_op, feed_dict={input_placeholder: np.random.uniform(size=[batch_size, 784])})
     #  sess.run(assign_op, feed_dict={input_placeholder: 0.5*np.ones([batch_size, 784])})
 
-    all_medians = []
-    all_inputs = []
-    for noise in [0.0, 0.05, 0.1, 0.15, 0.2]:
-        sampled_images = []
-        for _ in range(5):
-            sess.run(reinit_op)
-            input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(batch_size)]
-            sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+    # TODO: sample a few 7s from the real data. these will be used to measure reconstructions
+    # so we can pick the hyperparameters (noise and number of examples).
+    #  idx = np.random.choice(np.where(np.where(data.og.train.labels == 1)[1] == 7)[0])
+    #  idx = np.random.choice(np.where(np.where(data.og.train.labels == 1)[1] == 7))
+    #  print(idx)
+    #  print(data.og.train.labels[idx])
+    #  sys.exit(0)
 
-            all_inputs.append(np.reshape(sess.run(input_var)[0], [28, 28]))
+    #  all_medians = []
+    #  all_inputs = []
+    #  for noise in [0.0, 0.05, 0.1, 0.15, 0.2]:
+        #  sampled_images = []
+        #  for _ in range(5):
+            #  sess.run(reinit_op)
+            #  input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(batch_size)]
+            #  sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
-            for i in range(10000):
-                _, los = sess.run([recreate_op, recreate_loss],
-                        feed_dict={latent_placeholder: latent})
-                if i < 25: print(los)
+            #  all_inputs.append(np.reshape(sess.run(input_var)[0], [28, 28]))
 
-            sampled_images.extend(sess.run(input_var))
-            all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
-            print('{} {}'.format(noise, len(sampled_images)))
+            #  for i in range(10000):
+                #  _, los = sess.run([recreate_op, recreate_loss],
+                        #  feed_dict={latent_placeholder: latent})
+                #  if i < 25: print(los)
+
+            #  sampled_images.extend(sess.run(input_var))
+            #  all_medians.append(np.reshape(np.median(sampled_images, axis=0), [28, 28]))
+            #  print('{} {}'.format(noise, len(sampled_images)))
+
+
             #  cv2.imshow('progress', all_medians[-1])
             #  cv2.waitKey(0)
             #  cv2.destroyAllWindows()
@@ -122,10 +158,10 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     # between the generated images and the samples from og.
     # then do same for learning rates.
 
-    cv2.imshow('median', reshape_to_grid(all_medians))
-    cv2.imshow('input', reshape_to_grid(all_inputs))
+    #  cv2.imshow('median', reshape_to_grid(all_medians))
+    #  cv2.imshow('input', reshape_to_grid(all_inputs))
 
-    return sampled_images[:batch_size]
+    #  return sampled_images[:batch_size]
 
 def unblockshaped(arr, h, w):
     n, nrows, ncols = arr.shape
@@ -141,6 +177,17 @@ def reshape_to_grid(arr):
     grid = np.array([np.reshape(img, (28, 28)) for img in arr])
     size = int(28 * np.sqrt(grid.shape[0]))
     return unblockshaped(grid, size, size)
+
+def compute_optimized_examples(sess, stats, train_batch_size,
+        input_placeholder, latent_placeholder, input_var, assign_op,
+        recreate_op, data, latent_recreated, recreate_loss, reinit_op):
+    opt = {}
+    for clas in range(10):
+        print('clas: {}'.format(clas))
+        opt[clas] = sample_images(sess, stats, clas, train_batch_size,
+                input_placeholder, latent_placeholder, input_var, assign_op,
+                recreate_op, data, latent_recreated, recreate_loss, reinit_op)
+    return opt
 
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
@@ -173,26 +220,25 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
     with sess.as_default():
         global_step = 0
 
-
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
-        sampled_images = sample_images(sess, stats, 0, f.train_batch_size,
-                input_placeholder, latent_placeholder, input_var, assign_op,
-                recreate_op, data, latent_recreated, recreate_loss, reinit_op)
+        print('optimizing data')
+        data_optimized = compute_optimized_examples(sess, stats,
+                f.train_batch_size, input_placeholder, latent_placeholder,
+                input_var, assign_op, recreate_op, data, latent_recreated,
+                recreate_loss, reinit_op)
 
-
-        grid = reshape_to_grid(sampled_images)
-        cv2.imshow('og_latents', reshape_to_grid(data.og.train.images[:64]))
-        cv2.imshow('sampled', grid)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-        sys.exit(0)
-
+        for k, v in data_optimized.items():
+            cv2.imshow('grid', reshape_to_grid(v))
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
-            for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
+            for j in range(int(60000 / 64)):
+                clas = j % 10
+                batch_x, batch_y = data_optimized[clas]
+
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
