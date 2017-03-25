@@ -63,18 +63,31 @@ def compute_class_statistics(sess, inp, keep_inp, keep, data, temp):
     # consolidate them:
     means = {}
     cov = {}
+    #  one_act = [all_activations[7][1]]
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
-        cov[k] = np.cov(np.transpose(v))
+        #  cov[k] = np.cov(np.transpose(v))
+        cov[k] = np.sqrt(np.var(v, axis=0))
 
-    return means, cov
+    #  print('cov:{}'.format(cov[7]))
+    #  print('mean:{}'.format(means[7]))
+    #  print('min:{}'.format(np.min(all_activations[7], axis=0)))
+    #  print('max:{}'.format(np.max(all_activations[7], axis=0)))
+
+    return means, cov#, one_act
+
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 def sample_from_stats(stats, clas, batch_size, out_size):
     means, cov = stats
     out_size = means[list(means.keys())[0]].shape[0]
     gauss = np.random.normal(size=(batch_size, out_size))
-    gauss = np.random.normal(size=(batch_size, out_size))
-    return means[clas] + np.matmul(gauss, cov[clas])
+    #  pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
+    pre_sftmx = means[clas] + np.multiply(gauss, cov[clas])
+    return pre_sftmx
+    #  return [softmax(x) for x in pre_sftmx]
 
 def gkern(size=28, sig=4, noise=0.1):
     g = cv2.getGaussianKernel(size, sig)
@@ -84,37 +97,53 @@ def gkern(size=28, sig=4, noise=0.1):
     normd += noise * np.random.uniform(size=[size, size])
     return normd
 
+METHOD = ['onehot', 'onesample', 'manysample'][1]
+
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
-        latent_recreated, recreate_loss, reinit_op, temp_recreated):
+        latent_recreated, recreate_loss, reinit_op, temp_recreated, temp_rec_val):
 
     # these hyper params can be tuned
     num_examples_per_median = 64
     noise = 0.1
 
     all_latents = []
-    #  latent = np.zeros([10])
-    #  latent[clas] = 1.0
-    #  all_latents.append(latent)
-    #  latent = [latent] * (num_examples_per_median)
-    latent = sample_from_stats(stats, clas, 1, 10)
-    all_latents.append(latent[0])
-    latent = [latent[0]] * batch_size
+    if METHOD == 'onehot':
+        latent = np.zeros([10])
+        latent[clas] = 1.0
+        all_latents.append(latent)
+        latent = [latent] * (num_examples_per_median)
+    elif METHOD == 'onesample':
+        latent = sample_from_stats(stats, clas, 1, 10)
+        print(latent)
+        all_latents.append(latent[0])
+        latent = [latent[0]] * batch_size
+    elif METHOD == 'manysample':
+        latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
+        print(latent)
+        print(clas)
 
     all_medians = []
     for i in range(batch_size):
         print('\tmedian: {}'.format(i))
         # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
         sess.run(reinit_op)
-        input_kernels = [np.reshape(gkern(noise=0.1), [784]) for _ in range(num_examples_per_median)]
-        sess.run(assign_op, feed_dict={input_placeholder: input_kernels, temp_recreated: 8.0})
+        input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(num_examples_per_median)]
+
+        # TODO: remove
+        #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
+        #  input_kernels = [np.reshape(np.random.normal(0.5, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
+        # TODO: remove
+        cv2.imshow('inputs', reshape_to_grid(input_kernels))
+
+        sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
         for i in range(10000):
             _, los = sess.run([recreate_op, recreate_loss],
-                    feed_dict={latent_placeholder: latent})
+                    feed_dict={latent_placeholder: latent, temp_recreated: temp_rec_val})
             #  if i < 25: print(los)
 
         # TODO: remove
-        cv2.imshow('grid', reshape_to_grid(sess.run(input_var)))
+        cv2.imshow('optx', reshape_to_grid(sess.run(input_var)))
         cv2.imshow('median', np.reshape(np.median(sess.run(input_var), axis=0), [28,28]))
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -145,14 +174,16 @@ def reshape_to_grid(arr):
 def compute_optimized_examples(sess, stats, train_batch_size,
         input_placeholder, latent_placeholder, input_var, assign_op,
         recreate_op, data, latent_recreated, recreate_loss, reinit_op,
-        temp_recreated):
+        temp_recreated, temp_rec_val):
     opt = {}
     for clas in range(10):
+        # TODO: FIXXX
+        clas = 7
         print('clas: {}'.format(clas))
         opt[clas] = sample_images(sess, stats, clas, train_batch_size,
                 input_placeholder, latent_placeholder, input_var, assign_op,
                 recreate_op, data, latent_recreated, recreate_loss, reinit_op,
-                temp_recreated)
+                temp_recreated, temp_rec_val)
     return opt
 
 
@@ -169,10 +200,23 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         assign_op = tf.assign(input_var, input_placeholder)
         latent_recreated = tf.div(m.get('hinton1200').create_constant_model(sess, input_var), temp_recreated)
         with tf.variable_scope('xent_recreated'):
+            if METHOD == 'onehot':
+                sft = latent_placeholder
+            else:
+                #  sft = tf.nn.sigmoid(latent_placeholder)
+                #  sft = tf.nn.softmax(latent_placeholder)
+                sft = latent_placeholder
             recreate_loss = tf.reduce_mean(
-                    tf.nn.softmax_cross_entropy_with_logits(labels=latent_placeholder, logits=latent_recreated, name='sftmax_xent'))
+                    # MSE
+                    tf.pow((sft - latent_recreated), 2))
+                    # SOFTMAX
+                    #  tf.nn.softmax_cross_entropy_with_logits(
+                        #  labels=sft, logits=latent_recreated, name='sftmax_xent'))
+                    # SIGMOID
+                    #  tf.nn.sigmoid_cross_entropy_with_logits(
+                        #  labels=tf.nn.sigmoid(latent_placeholder), logits=latent_recreated, name='sftmax_xent'))
         with tf.variable_scope('opt_recreated'):
-            recreate_op = tf.train.AdamOptimizer(learning_rate=0.1).minimize(recreate_loss)
+            recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
         reinit_op = tf.variables_initializer(u.get_uninitted_vars(sess), name='reinit_op')
         sess.run(reinit_op)
@@ -188,17 +232,17 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         global_step = 0
 
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
-        stats = compute_class_statistics(sess, inp, keep_inp, keep, data, 8.0)
+        # TODO: maybe this wrong
+        temp_value = 8.0
+        stats = compute_class_statistics(sess, inp, keep_inp, keep, data, temp_value)
         print('optimizing data')
         data_optimized = compute_optimized_examples(sess, stats,
                 f.train_batch_size, input_placeholder, latent_placeholder,
                 input_var, assign_op, recreate_op, data, latent_recreated,
-                recreate_loss, reinit_op, temp_recreated)
+                recreate_loss, reinit_op, temp_recreated, temp_value)
 
         for k, v in data_optimized.items():
-            cv2.imshow('grid', reshape_to_grid(v))
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            cv2.imwrite('grid{}.png'.format(k), reshape_to_grid(v))
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
