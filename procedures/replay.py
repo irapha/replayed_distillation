@@ -107,25 +107,26 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     num_examples_per_median = 64
     noise = 0.1
 
-    all_latents = []
-    if METHOD == 'onehot':
-        latent = np.zeros([10])
-        latent[clas] = 1.0
-        all_latents.append(latent)
-        latent = [latent] * (num_examples_per_median)
-    elif METHOD == 'onesample':
-        latent = sample_from_stats(stats, clas, 1, 10)
-        print(latent)
-        all_latents.append(latent[0])
-        latent = [latent[0]] * batch_size
-    elif METHOD == 'manysample':
-        latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
-        print(latent)
-        print(clas)
-
     all_medians = []
+    all_latents = []
+
     for i in range(batch_size):
+        if METHOD == 'onehot':
+            latent = np.zeros([10])
+            latent[clas] = 1.0
+            all_latents.append(latent)
+            latent = [latent] * (num_examples_per_median)
+        elif METHOD == 'onesample':
+            latent = sample_from_stats(stats, clas, 1, 10)
+            #  print(latent)
+            all_latents.append(latent[0])
+            latent = [latent[0]] * num_examples_per_median
+        elif METHOD == 'manysample':
+            latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
+            #  print(latent)
+            #  print(clas)
         print('\tmedian: {}'.format(i))
+
         # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
         sess.run(reinit_op)
         input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(num_examples_per_median)]
@@ -134,7 +135,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
         #  input_kernels = [np.reshape(np.random.normal(0.5, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
         # TODO: remove
-        cv2.imshow('inputs', reshape_to_grid(input_kernels))
+        #  cv2.imshow('inputs', reshape_to_grid(input_kernels))
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
         for i in range(10000):
@@ -143,11 +144,19 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             #  if i < 25: print(los)
 
         # TODO: remove
-        cv2.imshow('optx', reshape_to_grid(sess.run(input_var)))
-        cv2.imshow('median', np.reshape(np.median(sess.run(input_var), axis=0), [28,28]))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        sys.exit(0)
+        #  cv2.imshow('optx', reshape_to_grid(sess.run(input_var)))
+        #  cv2.imshow('median', np.reshape(np.median(sess.run(input_var), axis=0), [28,28]))
+        #  cv2.waitKey(0)
+        #  cv2.destroyAllWindows()
+        #  sys.exit(0)
+
+        # TODO: remove
+        # TODO: worry about this later, but do worry about it
+        #  sess.run(reinit_op)
+        #  new_inp = [np.median(sess.run(input_var), axis=0)] * num_examples_per_median
+        #  sess.run(assign_op, feed_dict={input_placeholder: new_inp})
+        #  print(sess.run(latent_recreated, feed_dict={temp_recreated: temp_rec_val})[0])
+        #  sys.exit(0)
 
         all_medians.append(np.median(sess.run(input_var), axis=0))
 
@@ -178,7 +187,7 @@ def compute_optimized_examples(sess, stats, train_batch_size,
     opt = {}
     for clas in range(10):
         # TODO: FIXXX
-        clas = 7
+        #  clas = 7
         print('clas: {}'.format(clas))
         opt[clas] = sample_images(sess, stats, clas, train_batch_size,
                 input_placeholder, latent_placeholder, input_var, assign_op,
