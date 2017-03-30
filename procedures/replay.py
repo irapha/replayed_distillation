@@ -22,6 +22,7 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 # TODOS:
 # - see how relu + l2 reconstruction look like
 # - try pruning og model (with og weights) but using optimized examples.
+# - try regenerating data without median calculation. Should be quick.
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
@@ -101,7 +102,7 @@ def gkern(size=28, sig=4, noise=0.1):
     normd += noise * np.random.uniform(size=[size, size])
     return normd
 
-METHOD = ['onehot', 'onesample', 'manysample'][1]
+METHOD = ['onehot', 'onesample', 'manysample'][2]
 
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
@@ -114,7 +115,9 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     all_medians = []
     all_latents = []
 
-    for i in range(batch_size):
+    # TODO: fixxx
+    #  for i in range(batch_size):
+    for i in range(1):
         if METHOD == 'onehot':
             latent = np.zeros([10])
             latent[clas] = 1.0
@@ -127,9 +130,9 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             latent = [latent[0]] * num_examples_per_median
         elif METHOD == 'manysample':
             latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
-            latent_onehot = np.zeros([10])
-            latent_onehot[clas] = 1.0
-            all_latents.append(latent_onehot)
+            #  latent_onehot = np.zeros([10])
+            #  latent_onehot[clas] = 1.0
+            all_latents.extend(latent_onehot)
             #  print(latent)
             #  print(clas)
         print('\tmedian: {}'.format(i))
@@ -145,7 +148,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         #  cv2.imshow('inputs', reshape_to_grid(input_kernels))
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-        for i in range(10000):
+        for _ in range(10000):
             _, los = sess.run([recreate_op, recreate_loss],
                     feed_dict={latent_placeholder: latent, temp_recreated: temp_rec_val})
             #  if i < 25: print(los)
@@ -165,7 +168,9 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         #  print(sess.run(latent_recreated, feed_dict={temp_recreated: temp_rec_val})[0])
         #  sys.exit(0)
 
-        all_medians.append(np.median(sess.run(input_var), axis=0))
+        # TODO: fixx
+        #  all_medians.append(np.median(sess.run(input_var), axis=0))
+        all_medians = sess.run(input_var)
 
     #  final_latent = np.zeros([10])
     #  final_latent[clas] = 1.0
@@ -253,20 +258,20 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         # TODO: maybe this wrong
         temp_value = 8.0
-        load = True
+        load = False
         stats = compute_class_statistics(sess, inp, keep_inp, keep, data, temp_value)
         print('optimizing data')
         if load:
-            data_optimized = np.load('data_optimized.npy')[()]
+            data_optimized = np.load('data_optimized_notmedian.npy')[()]
         else:
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
                     recreate_loss, reinit_op, temp_recreated, temp_value)
 
-            np.save('data_optimized.npy', data_optimized)
+            np.save('data_optimized_notmedian.npy', data_optimized)
 
-        for i in range(f.epochs):
+        for i in range(f.epochs + 990):
             print('Epoch: {}'.format(i))
             for j in range(int(60000 / 64)):
                 clas = j % 10
