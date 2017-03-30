@@ -19,6 +19,10 @@ from utils import ensure_dir_exists
 MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
 MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
 
+# TODOS:
+# - see how relu + l2 reconstruction look like
+# - try pruning og model (with og weights) but using optimized examples.
+
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
 
@@ -123,6 +127,9 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             latent = [latent[0]] * num_examples_per_median
         elif METHOD == 'manysample':
             latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
+            latent_onehot = np.zeros([10])
+            latent_onehot[clas] = 1.0
+            all_latents.append(latent_onehot)
             #  print(latent)
             #  print(clas)
         print('\tmedian: {}'.format(i))
@@ -160,10 +167,10 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         all_medians.append(np.median(sess.run(input_var), axis=0))
 
-    final_latent = np.zeros([10])
-    final_latent[clas] = 1.0
-    final_latent = [final_latent] * (batch_size)
-    return all_medians, final_latent
+    #  final_latent = np.zeros([10])
+    #  final_latent[clas] = 1.0
+    #  final_latent = [final_latent] * (batch_size)
+    return all_medians, all_latents
 
 def unblockshaped(arr, h, w):
     n, nrows, ncols = arr.shape
@@ -189,10 +196,13 @@ def compute_optimized_examples(sess, stats, train_batch_size,
         # TODO: FIXXX
         #  clas = 7
         print('clas: {}'.format(clas))
-        opt[clas] = sample_images(sess, stats, clas, train_batch_size,
-                input_placeholder, latent_placeholder, input_var, assign_op,
-                recreate_op, data, latent_recreated, recreate_loss, reinit_op,
-                temp_recreated, temp_rec_val)
+        if clas not in opt:
+            opt[clas] = []
+        for i in range(10):
+            opt[clas].append(sample_images(sess, stats, clas, train_batch_size,
+                    input_placeholder, latent_placeholder, input_var, assign_op,
+                    recreate_op, data, latent_recreated, recreate_loss, reinit_op,
+                    temp_recreated, temp_rec_val))
     return opt
 
 
@@ -243,21 +253,24 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         # TODO: maybe this wrong
         temp_value = 8.0
+        load = True
         stats = compute_class_statistics(sess, inp, keep_inp, keep, data, temp_value)
         print('optimizing data')
-        data_optimized = compute_optimized_examples(sess, stats,
-                f.train_batch_size, input_placeholder, latent_placeholder,
-                input_var, assign_op, recreate_op, data, latent_recreated,
-                recreate_loss, reinit_op, temp_recreated, temp_value)
+        if load:
+            data_optimized = np.load('data_optimized.npy')[()]
+        else:
+            data_optimized = compute_optimized_examples(sess, stats,
+                    f.train_batch_size, input_placeholder, latent_placeholder,
+                    input_var, assign_op, recreate_op, data, latent_recreated,
+                    recreate_loss, reinit_op, temp_recreated, temp_value)
 
-        for k, v in data_optimized.items():
-            cv2.imwrite('grid{}.png'.format(k), reshape_to_grid(v))
+            np.save('data_optimized.npy', data_optimized)
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
             for j in range(int(60000 / 64)):
                 clas = j % 10
-                batch_x, batch_y = data_optimized[clas]
+                batch_x, batch_y = np.random.choice(data_optimized[clas])
 
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
