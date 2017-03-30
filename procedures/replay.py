@@ -270,7 +270,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             print('Epoch: {}'.format(i))
             for j in range(int(60000 / 64)):
                 clas = j % 10
-                batch_idx = np.random.choice(range(data_optimized[clas]))
+                batch_idx = np.random.choice(len(data_optimized[clas]))
                 batch_x, batch_y = data_optimized[clas][batch_idx]
 
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
