@@ -132,7 +132,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
             #  latent_onehot = np.zeros([10])
             #  latent_onehot[clas] = 1.0
-            all_latents.extend(latent_onehot)
+            all_latents.extend(latent)
             #  print(latent)
             #  print(clas)
         print('\tmedian: {}'.format(i))
