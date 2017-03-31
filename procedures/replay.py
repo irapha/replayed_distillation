@@ -52,11 +52,11 @@ def merge_summary_list(summary_list, do_print=False):
 
     return final_summary
 
-def compute_class_statistics(sess, act, inp, keep_inp, keep, data, temp, temp_val):
+def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, temp_val):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
-        batch_out = sess.run(act,
+        batch_out = sess.run(act_tensor,
                 feed_dict={inp: batch_x, keep_inp: 1.0, keep: 1.0, temp: temp_val})
 
         for act, y in zip(batch_out, batch_y):
@@ -259,10 +259,11 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: maybe this wrong
         temp_value = 8.0
         load = True
-        compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        compute_class_statistics(sess, '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value)
+        print('hey')
+        stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
         print('done')
         if load:
-            stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
             print('optimizing data')
             data_optimized = np.load('data_optimized_notmedian.npy')[()]
         else:
@@ -321,8 +322,10 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
         # post training, save statistics
         all_stats = {}
-        all_stats['teacher_stats'] = compute_class_statistics(sess, '784-800-800-10/temp/div:0', inp, None, None, data, 'temp:0', temp_value)
-        all_stats['student_stats'] = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        all_stats['student_stats'] = compute_class_statistics(sess,
+                '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value)
+        all_stats['teacher_stats'] = compute_class_statistics(sess,
+                '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
 
 
 def create_placeholders(sess, input_size, output_size, _):
