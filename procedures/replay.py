@@ -258,12 +258,12 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         # TODO: maybe this wrong
         temp_value = 8.0
-        load = True
-        if load:
+        stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][2]
+        if load_procedure == 'load':
             print('optimizing data')
             data_optimized = np.load('data_optimized_notmedian.npy')[()]
-        else:
-            stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        elif load_procedure == 'reconstruct_before':
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
@@ -275,8 +275,15 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             print('Epoch: {}'.format(i))
             for j in range(int(60000 / 64)):
                 clas = j % 10
-                batch_idx = np.random.choice(len(data_optimized[clas]))
-                batch_x, batch_y = data_optimized[clas][batch_idx]
+                if load_procedure in ['load', 'reconstruct_before']:
+                    batch_idx = np.random.choice(len(data_optimized[clas]))
+                    batch_x, batch_y = data_optimized[clas][batch_idx]
+                elif load_procedure == 'reconstruct_fly':
+                    batch_x, batch_y = sample_images(sess, stats, clas,
+                            f.train_batch_size, input_placeholder,
+                            latent_placeholder, input_var, assign_op,
+                            recreate_op, data, latent_recreated, recreate_loss,
+                            reinit_op, temp_recreated, temp_value)
 
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
