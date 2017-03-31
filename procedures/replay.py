@@ -52,12 +52,12 @@ def merge_summary_list(summary_list, do_print=False):
 
     return final_summary
 
-def compute_class_statistics(sess, inp, keep_inp, keep, data, temp):
+def compute_class_statistics(sess, act, inp, keep_inp, keep, data, temp, temp_val):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
-        batch_out = sess.run('784-1200-1200-10/temp/div:0',
-                feed_dict={inp: batch_x, keep_inp: 1.0, keep: 1.0, 'temp_1:0': temp})
+        batch_out = sess.run(act,
+                feed_dict={inp: batch_x, keep_inp: 1.0, keep: 1.0, temp: temp_val})
 
         for act, y in zip(batch_out, batch_y):
             clas = np.where(y == 1)[0][0]
@@ -258,10 +258,12 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         # TODO: maybe this wrong
         temp_value = 8.0
-        load = False
-        stats = compute_class_statistics(sess, inp, keep_inp, keep, data, temp_value)
-        print('optimizing data')
+        load = True
+        compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        print('done')
         if load:
+            stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+            print('optimizing data')
             data_optimized = np.load('data_optimized_notmedian.npy')[()]
         else:
             data_optimized = compute_optimized_examples(sess, stats,
@@ -271,7 +273,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
             np.save('data_optimized_notmedian.npy', data_optimized)
 
-        for i in range(f.epochs + 990):
+        for i in range(f.epochs + 245):
             print('Epoch: {}'.format(i))
             for j in range(int(60000 / 64)):
                 clas = j % 10
@@ -316,6 +318,12 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     ensure_dir_exists(checkpoint_dir)
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
+
+        # post training, save statistics
+        all_stats = {}
+        all_stats['teacher_stats'] = compute_class_statistics(sess, '784-800-800-10/temp/div:0', inp, None, None, data, 'temp:0', temp_value)
+        all_stats['student_stats'] = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+
 
 def create_placeholders(sess, input_size, output_size, _):
     new_saver = tf.train.import_meta_graph(MODEL_META)
