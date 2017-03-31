@@ -259,14 +259,11 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: maybe this wrong
         temp_value = 8.0
         load = True
-        compute_class_statistics(sess, '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value)
-        print('hey')
-        stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        print('done')
         if load:
             print('optimizing data')
             data_optimized = np.load('data_optimized_notmedian.npy')[()]
         else:
+            stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
@@ -326,6 +323,8 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
                 '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        np.save('activation_stats.npy', all_stats)
+        print('stats_saved')
 
 
 def create_placeholders(sess, input_size, output_size, _):
