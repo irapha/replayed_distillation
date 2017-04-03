@@ -143,7 +143,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         # TODO: remove
         #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
-        #  input_kernels = [np.reshape(np.random.normal(0.5, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
+        input_kernels = [np.reshape(np.random.normal(0.5, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
         # TODO: remove
         #  cv2.imshow('inputs', reshape_to_grid(input_kernels))
 
@@ -259,7 +259,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: maybe this wrong
         temp_value = 8.0
         stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][2]
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
             data_optimized = np.load('data_optimized_notmedian.npy')[()]
