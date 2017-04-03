@@ -229,10 +229,13 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             else:
                 #  sft = tf.nn.sigmoid(latent_placeholder)
                 #  sft = tf.nn.softmax(latent_placeholder)
-                sft = latent_placeholder
+                sft = tf.nn.relu(latent_placeholder)
+                #  sft = latent_placeholder
             recreate_loss = tf.reduce_mean(
                     # MSE
-                    tf.pow((sft - latent_recreated), 2))
+                    #  tf.pow((sft - latent_recreated), 2))
+                    # MSE on relu
+                    tf.pow((sft - tf.nn.relu(latent_recreated)), 2))
                     # SOFTMAX
                     #  tf.nn.softmax_cross_entropy_with_logits(
                         #  labels=sft, logits=latent_recreated, name='sftmax_xent'))
@@ -262,14 +265,14 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
-            data_optimized = np.load('data_optimized_notmedian_centralnorm.npy')[()]
+            data_optimized = np.load('data_optimized_notmedian_centralnorm_relumse.npy')[()]
         elif load_procedure == 'reconstruct_before':
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
                     recreate_loss, reinit_op, temp_recreated, temp_value)
 
-            np.save('data_optimized_notmedian_centralnorm.npy', data_optimized)
+            np.save('data_optimized_notmedian_centralnorm_relumse.npy', data_optimized)
 
         for i in range(f.epochs + 245):
             print('Epoch: {}'.format(i))
@@ -330,7 +333,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
                 '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        np.save('activation_stats.npy', all_stats)
+        np.save('activation_stats_centralnorm_relumse.npy', all_stats)
         print('stats_saved')
 
 
