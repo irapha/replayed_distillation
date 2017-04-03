@@ -262,14 +262,14 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
-            data_optimized = np.load('data_optimized_notmedian.npy')[()]
+            data_optimized = np.load('data_optimized_notmedian_centralnorm.npy')[()]
         elif load_procedure == 'reconstruct_before':
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
                     recreate_loss, reinit_op, temp_recreated, temp_value)
 
-            np.save('data_optimized_notmedian.npy', data_optimized)
+            np.save('data_optimized_notmedian_centralnorm.npy', data_optimized)
 
         for i in range(f.epochs + 245):
             print('Epoch: {}'.format(i))
