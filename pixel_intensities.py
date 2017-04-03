@@ -25,8 +25,8 @@ for clas in range(10):
     re_means.append(np.mean(clas_imgs, axis=0))
 cv2.imshow('re means notmedian centralnorm relumse', reshape_to_row(np.array(re_means)))
 
-#  cv2.waitKey(0)
-#  cv2.destroyAllWindows()
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 
 # analysing brightness and contrast
