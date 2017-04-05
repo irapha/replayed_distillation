@@ -1,8 +1,10 @@
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 
-all_stats = np.load('all_stats.npy')[()]
+all_stats = np.load('activation_stats_centralnorm_relumse.npy')[()]
 
 s_mean, s_sdev = all_stats['student_stats']
 t_mean, t_sdev = all_stats['teacher_stats']
