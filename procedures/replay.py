@@ -23,7 +23,7 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 # - [done] see how relu + l2 reconstruction look like
 # - try pruning og model (with og weights) but using optimized examples.
 # - [done] try regenerating data without median calculation. Should be quick.
-# - use cov matrix again. needs to be stddev tho
+# - [done] use cov matrix again. needs to be stddev tho
 # - maybe keep stats for middle of model. then feedforward to get activations
 #   for distilling, and optimize input on middle sample.
 # - keep stats for all layers actually, then get MSE of each of those, and
