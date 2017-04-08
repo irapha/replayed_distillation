@@ -120,8 +120,6 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
     all_medians = []
     all_latents = []
 
-    # TODO: fixxx
-    #  for i in range(batch_size):
     for i in range(1):
         if METHOD == 'onehot':
             latent = np.zeros([10])
@@ -144,7 +142,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
         sess.run(reinit_op)
-        input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(num_examples_per_median)]
+        #  input_kernels = [np.reshape(gkern(noise=noise), [784]) for _ in range(num_examples_per_median)]
 
         # TODO: remove
         #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
@@ -203,8 +201,6 @@ def compute_optimized_examples(sess, stats, train_batch_size,
         temp_recreated, temp_rec_val):
     opt = {}
     for clas in range(10):
-        # TODO: FIXXX
-        #  clas = 7
         print('clas: {}'.format(clas))
         if clas not in opt:
             opt[clas] = []
