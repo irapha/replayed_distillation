@@ -151,7 +151,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         #  cv2.imshow('inputs', reshape_to_grid(input_kernels))
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-        for _ in range(1000):
+        for _ in range(5000):
             _, los = sess.run([recreate_op, recreate_loss],
                     feed_dict={latent_placeholder: latent, temp_recreated: temp_rec_val})
             #  if i < 25: print(los)
