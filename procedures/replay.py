@@ -23,6 +23,11 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 # - [done] see how relu + l2 reconstruction look like
 # - try pruning og model (with og weights) but using optimized examples.
 # - [done] try regenerating data without median calculation. Should be quick.
+# - use cov matrix again. needs to be stddev tho
+# - maybe keep stats for middle of model. then feedforward to get activations
+#   for distilling, and optimize input on middle sample.
+# - keep stats for all layers actually, then get MSE of each of those, and
+#   reconstruct input on all of them.
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
@@ -71,8 +76,8 @@ def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, 
     #  one_act = [all_activations[7][1]]
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
-        #  cov[k] = np.cov(np.transpose(v))
-        cov[k] = np.sqrt(np.var(v, axis=0))
+        cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
+        #  cov[k] = np.sqrt(np.var(v, axis=0))
 
     #  print('cov:{}'.format(cov[7]))
     #  print('mean:{}'.format(means[7]))
