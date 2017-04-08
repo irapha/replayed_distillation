@@ -269,7 +269,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: maybe this wrong
         temp_value = 8.0
         stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][0]
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
             data_optimized = np.load('data_optimized_notmedian_centralnorm_relumse.npy')[()]
