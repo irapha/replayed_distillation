@@ -94,8 +94,8 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     means, cov = stats
     out_size = means[list(means.keys())[0]].shape[0]
     gauss = np.random.normal(size=(batch_size, out_size))
-    #  pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
-    pre_sftmx = means[clas] + np.multiply(gauss, cov[clas])
+    pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
+    #  pre_sftmx = means[clas] + np.multiply(gauss, cov[clas])
     return pre_sftmx
     #  return [softmax(x) for x in pre_sftmx]
 
