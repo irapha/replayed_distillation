@@ -57,7 +57,7 @@ def merge_summary_list(summary_list, do_print=False):
 
     return final_summary
 
-def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, temp_val):
+def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, temp_val, stddev=False):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
@@ -73,18 +73,21 @@ def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, 
     # consolidate them:
     means = {}
     cov = {}
+    stdev = {}
     #  one_act = [all_activations[7][1]]
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
         cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
-        #  cov[k] = np.sqrt(np.var(v, axis=0))
+        stdev[k] = np.sqrt(np.var(v, axis=0))
 
     #  print('cov:{}'.format(cov[7]))
     #  print('mean:{}'.format(means[7]))
     #  print('min:{}'.format(np.min(all_activations[7], axis=0)))
     #  print('max:{}'.format(np.max(all_activations[7], axis=0)))
 
-    return means, cov#, one_act
+    if stddev:
+        return means, cov, stdev
+    return means, cov
 
 def softmax(x):
     e_x = np.exp(x - np.max(x))
@@ -341,9 +344,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # post training, save statistics
         all_stats = {}
         all_stats['student_stats'] = compute_class_statistics(sess,
-                '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value)
+                '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
-                '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+                '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value, stddev=True)
         np.save('activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats_saved')
 
