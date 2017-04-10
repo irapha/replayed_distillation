@@ -174,7 +174,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         # TODO: fixx
         #  all_medians.append(np.median(sess.run(input_var), axis=0))
-        all_latents.extend(sess.run('const/div:0'))
+        all_latents.extend(sess.run('const/div:0', feed_dict={temp_recreated: temp_rec_val}))
         all_medians = sess.run(input_var)
 
     #  final_latent = np.zeros([10])
