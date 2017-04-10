@@ -152,7 +152,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         #  cv2.imshow('inputs', reshape_to_grid(input_kernels))
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-        for _ in range(10000):
+        for _ in range(1000):
             _, los = sess.run([recreate_op, recreate_loss],
                     feed_dict={latent_placeholder: latent, temp_recreated: temp_rec_val})
             #  if i < 25: print(los)
@@ -252,7 +252,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     #  tf.nn.sigmoid_cross_entropy_with_logits(
                         #  labels=tf.nn.sigmoid(latent_placeholder), logits=latent_recreated, name='sftmax_xent'))
         with tf.variable_scope('opt_recreated'):
-            recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+            recreate_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(recreate_loss)
 
         reinit_op = tf.variables_initializer(u.get_uninitted_vars(sess), name='reinit_op')
         sess.run(reinit_op)
