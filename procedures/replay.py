@@ -219,7 +219,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
     # create same model with constants instead of vars. And a Variable as input
     with tf.variable_scope('const'):
-        latent_placeholder = tf.placeholder(tf.float32, [None, 10], name='latent_placeholder')
+        latent_placeholder = tf.placeholder(tf.float32, [None, 1200], name='latent_placeholder')
         input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
         input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
         temp_recreated = tf.placeholder(tf.float32, name='temp_recreated')
@@ -273,7 +273,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: midlayer
         #  stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
         stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][0]
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
             data_optimized = np.load('data_optimized_{}.npy'.format(f.run_name))[()]
