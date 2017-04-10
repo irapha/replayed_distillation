@@ -8,7 +8,7 @@ import matplotlib.mlab as mlab
 from procedures.replay import reshape_to_row
 
 mnist = d.get('mnist')
-recns = np.load('data_optimized_notmedian_centralnorm_relumse.npy')[()]
+recns = np.load('data_optimized_hinton800_replayed_centralnormtest_relumse_cov_testmidlayermaybe.npy')[()]
 #  recns_notmedian = np.load('data_optimized_notmedian.npy')[()]
 
 og_means = []
