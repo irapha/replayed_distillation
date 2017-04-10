@@ -135,7 +135,8 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
             #  latent_onehot = np.zeros([10])
             #  latent_onehot[clas] = 1.0
-            all_latents.extend(latent)
+            # TODO: midlayer
+            #  all_latents.extend(latent)
             #  print(latent)
             #  print(clas)
         print('\tmedian: {}'.format(i))
@@ -173,6 +174,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         # TODO: fixx
         #  all_medians.append(np.median(sess.run(input_var), axis=0))
+        all_latents.extend(sess.run('const/div:0'))
         all_medians = sess.run(input_var)
 
     #  final_latent = np.zeros([10])
@@ -236,7 +238,11 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     # MSE
                     #  tf.pow((sft - latent_recreated), 2))
                     # MSE on relu
-                    tf.pow((sft - tf.nn.relu(latent_recreated)), 2))
+                    #  tf.pow((sft - tf.nn.relu(latent_recreated)), 2))
+                    # TODO: midlayer
+                    tf.pow((sft - tf.nn.relu(
+                        tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc2/add:0')
+                        )), 2))
                     # MSE on softmax
                     #  tf.pow((sft - tf.nn.softmax(latent_recreated)), 2))
                     # SOFTMAX
@@ -264,8 +270,10 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # step1: create dict of teacher model class statistics (as seen in Neurogenesis Deep Learning)
         # TODO: maybe this wrong
         temp_value = 8.0
-        stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
+        # TODO: midlayer
+        #  stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][0]
         if load_procedure == 'load':
             print('optimizing data')
             data_optimized = np.load('data_optimized_{}.npy'.format(f.run_name))[()]
