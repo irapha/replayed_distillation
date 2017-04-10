@@ -279,14 +279,14 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
-            data_optimized = np.load('data_optimized_{}.npy'.format(f.run_name))[()]
+            data_optimized = np.load('stats/data_optimized_{}.npy'.format(f.run_name))[()]
         elif load_procedure == 'reconstruct_before':
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
                     recreate_loss, reinit_op, temp_recreated, temp_value)
 
-            np.save('data_optimized_{}.npy'.format(f.run_name), data_optimized)
+            np.save('stats/data_optimized_{}.npy'.format(f.run_name), data_optimized)
 
         for i in range(f.epochs + 20):
             print('Epoch: {}'.format(i))
@@ -347,7 +347,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
                 '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value, stddev=True)
-        np.save('activation_stats_{}.npy'.format(f.run_name), all_stats)
+        np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats_saved')
 
 
