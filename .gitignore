@@ -2,6 +2,7 @@ irkd/
 summaries/
 summaries_old/
 MNIST_data/
+stats/
 
 # Created by https://www.gitignore.io/api/python
 
