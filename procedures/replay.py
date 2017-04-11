@@ -24,9 +24,9 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 # - try pruning og model (with og weights) but using optimized examples.
 # - [done] try regenerating data without median calculation. Should be quick.
 # - [done] use cov matrix again. needs to be stddev tho
-# - maybe keep stats for middle of model. then feedforward to get activations
+# - [done] maybe keep stats for middle of model. then feedforward to get activations
 #   for distilling, and optimize input on middle sample.
-# - keep stats for all layers actually, then get MSE of each of those, and
+# - [done] keep stats for all layers actually, then get MSE of each of those, and
 #   reconstruct input on all of them.
 
 def merge_summary_list(summary_list, do_print=False):
