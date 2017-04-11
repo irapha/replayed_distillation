@@ -148,9 +148,9 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
         for _ in range(10000):
             _, los = sess.run([recreate_op, recreate_loss],
-                    feed_dict={act_latent_placeholder: act_latent,
-                        fc2_latent_placeholder: fc2_latent,
-                        fc1_latent_placeholder: fc1_latent,
+                    feed_dict={act_placeholder: act_latent,
+                        fc2_placeholder: fc2_latent,
+                        fc1_placeholder: fc1_latent,
                         temp_recreated: temp_rec_val})
 
         all_latents.extend(sess.run('const/div:0', feed_dict={temp_recreated: temp_rec_val}))
