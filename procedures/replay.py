@@ -146,7 +146,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         input_kernels = [np.reshape(np.random.normal(0.5, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
-        for _ in range(10000):
+        for _ in range(1000):
             _, los = sess.run([recreate_op, recreate_loss],
                     feed_dict={act_placeholder: act_latent,
                         fc2_placeholder: fc2_latent,
@@ -215,19 +215,19 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 fc1_sft = tf.nn.relu(fc1_placeholder)
                 #  sft = latent_placeholder
             recreate_loss = (
-                    (#(1.0/800) *
+                    ((1.0/800) *
                         tf.reduce_mean(
                             tf.pow((act_sft - tf.nn.relu(
                                 tf.get_default_graph().get_tensor_by_name('const/div:0')
                                 )), 2)
                             )) +
-                    (#(1.0/1200) *
+                    ((1.0/1200) *
                         tf.reduce_mean(
                             tf.pow((fc2_sft - tf.nn.relu(
                                 tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc2/add:0')
                                 )), 2)
                             )) +
-                    (#(1.0/1200) *
+                    ((1.0/1200) *
                         tf.reduce_mean(
                             tf.pow((fc1_sft - tf.nn.relu(
                                 tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc1/add:0')
