@@ -28,6 +28,7 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 #          for distilling, and optimize input on middle sample.
 # - [done] keep stats for all layers actually, then get MSE of each of those, and
 #          reconstruct input on all of them.
+# - rerun this new all layers distillation on mnist to see how well the student does
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
