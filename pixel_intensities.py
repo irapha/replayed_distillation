@@ -6,9 +6,10 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 from procedures.replay import reshape_to_row
+from random import choice
 
 mnist = d.get('mnist')
-recns = np.load('data_optimized_hinton800_replayed_centralnormtest_relumse_cov_testmidlayermaybe.npy')[()]
+recns = np.load('stats/data_optimized_hinton800_replayed_centralnormtest_relumse_covsavevar_testalllayers.npy')[()]
 #  recns_notmedian = np.load('data_optimized_notmedian.npy')[()]
 
 og_means = []
@@ -24,6 +25,14 @@ for clas in range(10):
         clas_imgs.extend(batch_x)
     re_means.append(np.mean(clas_imgs, axis=0))
 cv2.imshow('re means notmedian centralnorm relumse', reshape_to_row(np.array(re_means)))
+
+re_random = []
+for clas in range(10):
+    clas_imgs = []
+    for batch_x, _ in recns[clas]:
+        clas_imgs.extend(batch_x)
+    re_random.append(choice(clas_imgs))
+cv2.imshow('re random notmedian centralnorm relumse', reshape_to_row(np.array(re_random)))
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
