@@ -215,18 +215,19 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 fc1_sft = tf.nn.relu(fc1_placeholder)
                 #  sft = latent_placeholder
             recreate_loss = (
-                    tf.reduce_mean(
-                        tf.pow((act_sft - tf.nn.relu(
-                            tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10/temp/div:0')
-                            )), 2)
-                        ) +
-                    (0.5 *
+                    ((1.0/800) *
+                        tf.reduce_mean(
+                            tf.pow((act_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/div:0')
+                                )), 2)
+                            )) +
+                    ((1.0/1200) *
                         tf.reduce_mean(
                             tf.pow((fc2_sft - tf.nn.relu(
                                 tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc2/add:0')
                                 )), 2)
                             )) +
-                    (0.5 *
+                    ((1.0/1200) *
                         tf.reduce_mean(
                             tf.pow((fc1_sft - tf.nn.relu(
                                 tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc1/add:0')
