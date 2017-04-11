@@ -143,7 +143,7 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         # TODO: remove
         #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
-        input_kernels = [np.reshape(np.random.normal(0.15, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
+        input_kernels = [np.reshape(np.random.normal(0., 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
         for _ in range(1000):
