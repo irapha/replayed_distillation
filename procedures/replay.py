@@ -217,7 +217,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             recreate_loss = (
                     tf.reduce_mean(
                         tf.pow((act_sft - tf.nn.relu(
-                            tf.get_default_graph().get_tensor_by_name('784-1200-1200-10/temp/div:0')
+                            tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10/temp/div:0')
                             )), 2)
                         ) +
                     (0.5 *
