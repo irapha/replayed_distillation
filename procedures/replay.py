@@ -182,7 +182,7 @@ def compute_optimized_examples(sess, stats, train_batch_size,
         print('clas: {}'.format(clas))
         if clas not in opt:
             opt[clas] = []
-        for i in range(30):
+        for i in range(100):
             opt[clas].append(sample_images(sess, stats, clas, train_batch_size,
                     input_placeholder, latent_placeholder, input_var, assign_op,
                     recreate_op, data, latent_recreated, recreate_loss, reinit_op,
