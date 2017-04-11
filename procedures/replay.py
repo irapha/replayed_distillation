@@ -74,16 +74,11 @@ def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, 
     means = {}
     cov = {}
     stdev = {}
-    #  one_act = [all_activations[7][1]]
+
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
         cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
         stdev[k] = np.sqrt(np.var(v, axis=0))
-
-    #  print('cov:{}'.format(cov[7]))
-    #  print('mean:{}'.format(means[7]))
-    #  print('min:{}'.format(np.min(all_activations[7], axis=0)))
-    #  print('max:{}'.format(np.max(all_activations[7], axis=0)))
 
     if stddev:
         return means, cov, stdev
@@ -116,6 +111,9 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
         latent_recreated, recreate_loss, reinit_op, temp_recreated, temp_rec_val):
 
+    act_stats,fc2_stats, fc1_stats = stats
+    act_placeholder, fc2_placeholder, fc1_placeholder = latent_placeholder
+
     # these hyper params can be tuned
     num_examples_per_median = 64
     noise = 0.1
@@ -131,17 +129,12 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             latent = [latent] * (num_examples_per_median)
         elif METHOD == 'onesample':
             latent = sample_from_stats(stats, clas, 1, 10)
-            #  print(latent)
             all_latents.append(latent[0])
             latent = [latent[0]] * num_examples_per_median
         elif METHOD == 'manysample':
-            latent = sample_from_stats(stats, clas, num_examples_per_median, 10)
-            #  latent_onehot = np.zeros([10])
-            #  latent_onehot[clas] = 1.0
-            # TODO: midlayer
-            #  all_latents.extend(latent)
-            #  print(latent)
-            #  print(clas)
+            act_latent = sample_from_stats(act_stats, clas, num_examples_per_median, 10)
+            fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 1200)
+            fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 1200)
         print('\tmedian: {}'.format(i))
 
         # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
@@ -151,38 +144,18 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         # TODO: remove
         #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
         input_kernels = [np.reshape(np.random.normal(0.5, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
-        # TODO: remove
-        #  cv2.imshow('inputs', reshape_to_grid(input_kernels))
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
         for _ in range(10000):
             _, los = sess.run([recreate_op, recreate_loss],
-                    feed_dict={latent_placeholder: latent, temp_recreated: temp_rec_val})
-            #  if i < 25: print(los)
+                    feed_dict={act_latent_placeholder: act_latent,
+                        fc2_latent_placeholder: fc2_latent,
+                        fc1_latent_placeholder: fc1_latent,
+                        temp_recreated: temp_rec_val})
 
-        # TODO: remove
-        #  cv2.imshow('optx', reshape_to_grid(sess.run(input_var)))
-        #  cv2.imshow('median', np.reshape(np.median(sess.run(input_var), axis=0), [28,28]))
-        #  cv2.waitKey(0)
-        #  cv2.destroyAllWindows()
-        #  sys.exit(0)
-
-        # TODO: remove
-        # TODO: worry about this later, but do worry about it
-        #  sess.run(reinit_op)
-        #  new_inp = [np.median(sess.run(input_var), axis=0)] * num_examples_per_median
-        #  sess.run(assign_op, feed_dict={input_placeholder: new_inp})
-        #  print(sess.run(latent_recreated, feed_dict={temp_recreated: temp_rec_val})[0])
-        #  sys.exit(0)
-
-        # TODO: fixx
-        #  all_medians.append(np.median(sess.run(input_var), axis=0))
         all_latents.extend(sess.run('const/div:0', feed_dict={temp_recreated: temp_rec_val}))
         all_medians = sess.run(input_var)
 
-    #  final_latent = np.zeros([10])
-    #  final_latent[clas] = 1.0
-    #  final_latent = [final_latent] * (batch_size)
     return all_medians, all_latents
 
 def unblockshaped(arr, h, w):
@@ -222,7 +195,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
     # create same model with constants instead of vars. And a Variable as input
     with tf.variable_scope('const'):
-        latent_placeholder = tf.placeholder(tf.float32, [None, 1200], name='latent_placeholder')
+        act_placeholder = tf.placeholder(tf.float32, [None, 10], name='act_placeholder')
+        fc2_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc2_placeholder')
+        fc1_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc1_placeholder')
         input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
         input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
         temp_recreated = tf.placeholder(tf.float32, name='temp_recreated')
@@ -235,25 +210,29 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             else:
                 #  sft = tf.nn.sigmoid(latent_placeholder)
                 #  sft = tf.nn.softmax(latent_placeholder)
-                sft = tf.nn.relu(latent_placeholder)
+                act_sft = tf.nn.relu(act_placeholder)
+                fc2_sft = tf.nn.relu(fc2_placeholder)
+                fc1_sft = tf.nn.relu(fc1_placeholder)
                 #  sft = latent_placeholder
-            recreate_loss = tf.reduce_mean(
-                    # MSE
-                    #  tf.pow((sft - latent_recreated), 2))
-                    # MSE on relu
-                    #  tf.pow((sft - tf.nn.relu(latent_recreated)), 2))
-                    # TODO: midlayer
-                    tf.pow((sft - tf.nn.relu(
-                        tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc2/add:0')
-                        )), 2))
-                    # MSE on softmax
-                    #  tf.pow((sft - tf.nn.softmax(latent_recreated)), 2))
-                    # SOFTMAX
-                    #  tf.nn.softmax_cross_entropy_with_logits(
-                        #  labels=sft, logits=latent_recreated, name='sftmax_xent'))
-                    # SIGMOID
-                    #  tf.nn.sigmoid_cross_entropy_with_logits(
-                        #  labels=tf.nn.sigmoid(latent_placeholder), logits=latent_recreated, name='sftmax_xent'))
+            recreate_loss = tf.sum(
+                    tf.reduce_mean(
+                        tf.pow((act_sft - tf.nn.relu(
+                            tf.get_default_graph().get_tensor_by_name('784-1200-1200-10/temp/div:0')
+                            )), 2)
+                        ),
+                    (0.5 *
+                        tf.reduce_mean(
+                            tf.pow((fc2_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc2/add:0')
+                                )), 2)
+                            )),
+                    (0.5 *
+                        tf.reduce_mean(
+                            tf.pow((fc1_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc1/add:0')
+                                )), 2)
+                            ))
+                    )
         with tf.variable_scope('opt_recreated'):
             recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
@@ -274,13 +253,16 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: maybe this wrong
         temp_value = 8.0
         # TODO: midlayer
-        #  stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        act_stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        fc2_stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
             data_optimized = np.load('stats/data_optimized_{}.npy'.format(f.run_name))[()]
         elif load_procedure == 'reconstruct_before':
+            stats = act_stats,fc2_stats, fc1_stats
+            latent_placeholder = act_placeholder, fc2_placeholder, fc1_placeholder
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,

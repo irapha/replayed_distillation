@@ -14,9 +14,9 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
-all_stats = np.load('activation_stats_centralnorm_relumse_cov.npy')[()]
+all_stats = np.load('stats/activation_stats_centralnorm_relumse_cov.npy')[()]
 
 t_mean, t_sdev = all_stats['teacher_stats']
 
 print(softmax(sample_from_stats(t_mean, t_sdev, 8, 1, 10)))
-print(softmax(sample_from_stats(t_mean, t_sdev, 8, 1, 10)/18.0))
+print(softmax(sample_from_stats(t_mean, t_sdev, 8, 1, 10)/90.0))
