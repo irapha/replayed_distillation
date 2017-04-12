@@ -236,7 +236,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                             ))
                     )
         with tf.variable_scope('opt_recreated'):
-            recreate_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(recreate_loss)
+            recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
         reinit_op = tf.variables_initializer(u.get_uninitted_vars(sess), name='reinit_op')
         sess.run(reinit_op)
