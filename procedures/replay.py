@@ -29,6 +29,8 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 # - [done] keep stats for all layers actually, then get MSE of each of those, and
 #          reconstruct input on all of them.
 # - rerun this new all layers distillation on mnist to see how well the student does
+# - fix dropout neurons at every reconstruction step. i think it will better use
+#   the specific neuron pathways backwards. actually this is a p good idea. just like how to do it?
 
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
