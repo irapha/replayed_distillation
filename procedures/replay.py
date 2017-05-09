@@ -60,6 +60,9 @@ def merge_summary_list(summary_list, do_print=False):
 
     return final_summary
 
+def get_dropout_filter(shape1, shape2, keep_prob):
+    return no.random.binomial(1, keep_prob, size=[shape1, shape2])
+
 def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, temp_val, stddev=False):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
@@ -112,7 +115,8 @@ METHOD = ['onehot', 'onesample', 'manysample'][2]
 
 def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_placeholder, input_var, assign_op, recreate_op, data,
-        latent_recreated, recreate_loss, reinit_op, temp_recreated, temp_rec_val):
+        latent_recreated, recreate_loss, reinit_op, temp_recreated,
+        temp_rec_val, drop_dict):
 
     act_stats,fc2_stats, fc1_stats = stats
     act_placeholder, fc2_placeholder, fc1_placeholder = latent_placeholder
@@ -149,6 +153,15 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         input_kernels = [np.reshape(np.random.normal(0.15, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
+
+        # TODO NIPS: use drop_dict
+        # sess.run(drop_dict['assign_drop_inp_op'],
+                # feed_dict={drop_dict['drop_inp_place']: get_dropout_filter(batch_size, 784, 0.8)})
+        # sess.run(drop_dict['assign_drop_fc1_op'],
+                # feed_dict={drop_dict['drop_fc1_place']: get_dropout_filter(batch_size, 1200, 0.5)})
+        # sess.run(drop_dict['assign_drop_fc2_op'],
+                # feed_dict={drop_dict['drop_fc2_place']: get_dropout_filter(batch_size, 1200, 0.5)})
+
         for _ in range(1000):
             _, los = sess.run([recreate_op, recreate_loss],
                     feed_dict={act_placeholder: act_latent,
@@ -179,7 +192,7 @@ def reshape_to_grid(arr):
 def compute_optimized_examples(sess, stats, train_batch_size,
         input_placeholder, latent_placeholder, input_var, assign_op,
         recreate_op, data, latent_recreated, recreate_loss, reinit_op,
-        temp_recreated, temp_rec_val):
+        temp_recreated, temp_rec_val, drop_dict):
     opt = {}
     for clas in range(10):
         print('clas: {}'.format(clas))
@@ -189,7 +202,7 @@ def compute_optimized_examples(sess, stats, train_batch_size,
             opt[clas].append(sample_images(sess, stats, clas, train_batch_size,
                     input_placeholder, latent_placeholder, input_var, assign_op,
                     recreate_op, data, latent_recreated, recreate_loss, reinit_op,
-                    temp_recreated, temp_rec_val))
+                    temp_recreated, temp_rec_val, drop_dict))
     return opt
 
 
@@ -206,7 +219,21 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         temp_recreated = tf.placeholder(tf.float32, name='temp_recreated')
         sess.run(tf.variables_initializer([input_var], name='init_input'))
         assign_op = tf.assign(input_var, input_placeholder)
-        latent_recreated = tf.div(m.get('hinton1200').create_constant_model(sess, input_var), temp_recreated)
+
+        drop_dict = {}
+        drop_dict['drop_inp_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 784], name='drop_inp_place')
+        drop_dict['drop_inp_var'] = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='drop_inp_var')
+        drop_dict['assign_drop_inp_op'] = tf.assign(drop_dict['drop_inp_var'], drop_dict['drop_inp_place'])
+
+        drop_dict['drop_fc1_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 1200], name='drop_fc1_place')
+        drop_dict['drop_fc1_var'] = tf.Variable(tf.zeros([f.train_batch_size, 1200]), name='drop_fc1_var')
+        drop_dict['assign_drop_fc1_op'] = tf.assign(drop_dict['drop_fc1_var'], drop_dict['drop_fc1_place'])
+
+        drop_dict['drop_fc2_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 1200], name='drop_fc2_place')
+        drop_dict['drop_fc2_var'] = tf.Variable(tf.zeros([f.train_batch_size, 1200]), name='drop_fc2_var')
+        drop_dict['assign_drop_fc2_op'] = tf.assign(drop_dict['drop_fc2_var'], drop_dict['drop_fc2_place'])
+
+        latent_recreated = tf.div(m.get('hinton1200').create_constant_model(sess, input_var, drop_dict), temp_recreated)
         with tf.variable_scope('xent_recreated'):
             if METHOD == 'onehot':
                 sft = latent_placeholder
@@ -270,7 +297,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
-                    recreate_loss, reinit_op, temp_recreated, temp_value)
+                    recreate_loss, reinit_op, temp_recreated, temp_value, drop_dict)
 
             np.save('stats/data_optimized_{}.npy'.format(f.run_name), data_optimized)
 
@@ -286,7 +313,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                             f.train_batch_size, input_placeholder,
                             latent_placeholder, input_var, assign_op,
                             recreate_op, data, latent_recreated, recreate_loss,
-                            reinit_op, temp_recreated, temp_value)
+                            reinit_op, temp_recreated, temp_value, drop_dict)
 
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
