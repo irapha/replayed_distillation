@@ -39,10 +39,15 @@ if __name__ == '__main__':
 
     # create graph
     input_size, output_size = d.get_io_size(FLAGS.dataset)
-    #  keep_inp, keep, temp, labels_temp = u.create_optional_params()
+    if FLAGS.procedure == 'train':
+        keep_inp, keep, temp, labels_temp = u.create_optional_params()
     temp = tf.placeholder(tf.float32, name='temp')
 
-    inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
+    if FLAGS.procedure == 'train':
+        inp, labels, keep_inp, keep, labels_temp = p.get(
+                FLAGS.procedure).create_placeholders(sess, input_size, output_size, (keep_inp, keep, temp, labels_temp))
+    else:
+        inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
     labels_evaldistill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
@@ -68,8 +73,12 @@ if __name__ == '__main__':
     u.init_uninitted_vars(sess)
 
     # run training procedure
-    p.get(FLAGS.procedure).run(sess, FLAGS, data,
-            (inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
+    if FLAGS.procedure == 'train':
+        p.get(FLAGS.procedure).run(sess, FLAGS, data,
+                (inp, labels, keep_inp, keep, temp, labels_temp), train_step, summary_op)
+    else:
+        p.get(FLAGS.procedure).run(sess, FLAGS, data,
+                (inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
 
     # save log
     u.save_log(log, FLAGS.summary_folder, FLAGS.run_name, FLAGS.log_file)
