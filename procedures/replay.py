@@ -61,7 +61,7 @@ def merge_summary_list(summary_list, do_print=False):
     return final_summary
 
 def get_dropout_filter(shape1, shape2, keep_prob):
-    return no.random.binomial(1, keep_prob, size=[shape1, shape2])
+    return np.random.binomial(1, keep_prob, size=[shape1, shape2])
 
 def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, temp_val, stddev=False):
     all_activations = {}
@@ -294,7 +294,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         print('computing stats 3')
         fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
         print('all stats computed')
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][0]
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('loading optimizing data')
             data_optimized = np.load('stats/data_optimized_{}.npy'.format(f.run_name))[()]
