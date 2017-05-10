@@ -16,8 +16,8 @@ import utils as u
 
 from utils import ensure_dir_exists
 
-MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
-MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
+MODEL_META = 'summaries/train_model_withcollect/checkpoint/hinton1200-8000.meta'
+MODEL_CHECKPOINT = 'summaries/train_model_withcollect/checkpoint/hinton1200-8000'
 
 # TODOS:
 # - [done] see how relu + l2 reconstruction look like
@@ -210,6 +210,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
 
     # create same model with constants instead of vars. And a Variable as input
+    print('creating const graph')
     with tf.variable_scope('const'):
         act_placeholder = tf.placeholder(tf.float32, [None, 10], name='act_placeholder')
         fc2_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc2_placeholder')
@@ -270,6 +271,8 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         reinit_op = tf.variables_initializer(u.get_uninitted_vars(sess), name='reinit_op')
         sess.run(reinit_op)
 
+    print('all graphs created')
+
     saver = tf.train.Saver(tf.global_variables())
 
     summary_dir = os.path.join(f.summary_folder, f.run_name)
@@ -284,9 +287,13 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # TODO: maybe this wrong
         temp_value = 8.0
         # TODO: midlayer
-        act_stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        fc2_stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
-        fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
+        print('computing stats 1')
+        act_stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        print('computing stats 2')
+        fc2_stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        print('computing stats 3')
+        fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        print('all stats computed')
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('optimizing data')
