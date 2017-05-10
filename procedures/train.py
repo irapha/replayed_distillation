@@ -38,6 +38,7 @@ def merge_summary_list(summary_list, do_print=False):
     return final_summary
 
 def run(sess, f, data, placeholders, train_step, summary_op):
+    print('running')
     inp, labels, keep_inp, keep, temp, labels_temp = placeholders
     # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
 

@@ -85,9 +85,10 @@ def ensure_dir_exists(dir_name):
 
 def get_sess_config(use_gpu=True):
     if use_gpu:
-        config = tf.ConfigProto()
-	config.gpu_options.allow_growth = True
-	return config
+        return None
+        #config = tf.ConfigProto()
+        #config.gpu_options.allow_growth = True
+        #return config
     else:
         return tf.ConfigProto(device_count={'GPU': 0})
 

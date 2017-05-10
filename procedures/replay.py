@@ -7,7 +7,7 @@ import numpy as np
 import os
 import sys
 import tensorflow as tf
-import cv2
+#import cv2
 import scipy.stats as st
 import scipy
 
@@ -103,13 +103,13 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     return pre_sftmx
     #  return [softmax(x) for x in pre_sftmx]
 
-def gkern(size=28, sig=4, noise=0.1):
-    g = cv2.getGaussianKernel(size, sig)
-    gi = cv2.getGaussianKernel(size, sig).T
-    normd = np.matmul(g, gi)
-    normd = (1.0 - noise) * (normd / normd.max())
-    normd += noise * np.random.uniform(size=[size, size])
-    return normd
+#def gkern(size=28, sig=4, noise=0.1):
+#    g = cv2.getGaussianKernel(size, sig)
+#    gi = cv2.getGaussianKernel(size, sig).T
+#    normd = np.matmul(g, gi)
+#    normd = (1.0 - noise) * (normd / normd.max())
+#    normd += noise * np.random.uniform(size=[size, size])
+#    return normd
 
 METHOD = ['onehot', 'onesample', 'manysample'][2]
 
@@ -326,7 +326,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
                             keep_inp: 1.0, keep: 1.0,
-                            'temp_1:0': 8.0, temp: 8.0})
+                            'temp_1_1:0': 8.0, temp: 8.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
@@ -338,7 +338,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                                 feed_dict={inp: test_batch_x,
                                     labels_evaldistill: test_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
-                                    'temp_1:0': 1.0, temp: 1.0})
+                                    'temp_1_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     test_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -349,7 +349,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                                 feed_dict={inp: train_batch_x,
                                     labels_evaldistill: train_batch_y,
                                     keep_inp: 1.0, keep: 1.0,
-                                    'temp_1:0': 1.0, temp: 1.0})
+                                    'temp_1_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -366,7 +366,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         all_stats['student_stats'] = compute_class_statistics(sess,
                 '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
-                '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value, stddev=True)
+                '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value, stddev=True)
         np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats_saved')
 

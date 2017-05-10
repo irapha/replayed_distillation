@@ -38,6 +38,7 @@ if __name__ == '__main__':
     sess = tf.Session(u.get_sess_config(use_gpu=True))
 
     # create graph
+    print('creating graph')
     input_size, output_size = d.get_io_size(FLAGS.dataset)
     if FLAGS.procedure == 'train':
         keep_inp, keep, temp, labels_temp = u.create_optional_params()
@@ -51,6 +52,7 @@ if __name__ == '__main__':
     labels_evaldistill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
 
     out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
+    print('all graphs created for train')
 
     if FLAGS.procedure == 'train':
         tf.add_to_collection('input', inp)
@@ -74,6 +76,7 @@ if __name__ == '__main__':
     u.init_uninitted_vars(sess)
 
     # run training procedure
+    print('starting run')
     if FLAGS.procedure == 'train':
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, keep_inp, keep, temp, labels_temp), train_step, summary_op)
