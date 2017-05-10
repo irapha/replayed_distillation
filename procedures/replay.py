@@ -155,12 +155,12 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
         # TODO NIPS: use drop_dict
-        # sess.run(drop_dict['assign_drop_inp_op'],
-                # feed_dict={drop_dict['drop_inp_place']: get_dropout_filter(batch_size, 784, 0.8)})
-        # sess.run(drop_dict['assign_drop_fc1_op'],
-                # feed_dict={drop_dict['drop_fc1_place']: get_dropout_filter(batch_size, 1200, 0.5)})
-        # sess.run(drop_dict['assign_drop_fc2_op'],
-                # feed_dict={drop_dict['drop_fc2_place']: get_dropout_filter(batch_size, 1200, 0.5)})
+        sess.run(drop_dict['assign_drop_inp_op'],
+                feed_dict={drop_dict['drop_inp_place']: get_dropout_filter(batch_size, 784, 0.8)})
+        sess.run(drop_dict['assign_drop_fc1_op'],
+                feed_dict={drop_dict['drop_fc1_place']: get_dropout_filter(batch_size, 1200, 0.5)})
+        sess.run(drop_dict['assign_drop_fc2_op'],
+                feed_dict={drop_dict['drop_fc2_place']: get_dropout_filter(batch_size, 1200, 0.5)})
 
         for _ in range(1000):
             _, los = sess.run([recreate_op, recreate_loss],

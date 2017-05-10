@@ -9,7 +9,7 @@ from procedures.replay import reshape_to_row
 from random import choice
 
 mnist = d.get('mnist')
-recns = np.load('stats/data_optimized_notmedian_centralnorm_relumse_cov.npy')[()]
+recns = np.load('stats/data_optimized_replay_drop_rescaleonly.npy')[()]
 #  recns_notmedian = np.load('data_optimized_notmedian.npy')[()]
 
 og_means = []

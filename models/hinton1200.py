@@ -34,26 +34,26 @@ def create_constant_model(sess, inp, drop_dict):
     with tf.variable_scope('784-1200-1200-10_const'):
         with tf.variable_scope('inp_drop'):
             # mere rescaling
-            inp = inp * 0.8
+            #  inp = inp * 0.8
             # TODO NIPS: use drop_dict
-            # inp = tf.multiply(inp, drop_dict['drop_inp_var'])
+            inp = tf.multiply(inp, drop_dict['drop_inp_var'])
 
         with tf.variable_scope('fc1'):
             w = tf.constant(sess.run('784-1200-1200-10/fc1/w:0'), name='w')
             b = tf.constant(sess.run('784-1200-1200-10/fc1/b:0'), name='b')
             z = tf.nn.relu(tf.matmul(inp, w) + b, name='relu')
             # mere rescaling
-            z = z * 0.5
+            #  z = z * 0.5
             # TODO NIPS: use drop_dict
-            # z = tf.multiply(z, drop_dict['drop_fc1_var'])
+            z = tf.multiply(z, drop_dict['drop_fc1_var'])
 
         with tf.variable_scope('fc2'):
             w = tf.constant(sess.run('784-1200-1200-10/fc2/w:0'), name='w')
             b = tf.constant(sess.run('784-1200-1200-10/fc2/b:0'), name='b')
             z = tf.nn.relu(tf.matmul(z, w) + b, name='relu')
-            z = z * 0.5
+            #  z = z * 0.5
             # TODO NIPS: use drop_dict
-            # z = tf.multiply(z, drop_dict['drop_fc2_var'])
+            z = tf.multiply(z, drop_dict['drop_fc2_var'])
 
         with tf.variable_scope('fc3'):
             w = tf.constant(sess.run('784-1200-1200-10/fc3/w:0'), name='w')
