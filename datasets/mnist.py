@@ -22,9 +22,9 @@ class MNISTIterator(object):
         np.random.shuffle(train_list)
         for batch_i in grouper(train_list, batch_size):
             if size is not None:
-                batch = [(resize(
+                batch = [(np.expand_dims(resize(
                                  np.reshape(self.og.train.images[i], (28, 28)),
-                                 (size, size)),
+                                 (size, size), mode='constant'), axis=3),
                           self.og.train.labels[i])
                         for i in batch_i if i is not None]
             else:
@@ -37,9 +37,9 @@ class MNISTIterator(object):
         np.random.shuffle(test_list)
         for batch_i in grouper(test_list, batch_size):
             if size is not None:
-                batch = [(resize(
+                batch = [(np.expand_dims(resize(
                                  np.reshape(self.og.test.images[i], (28, 28)),
-                                 (size, size)),
+                                 (size, size), mode='constant'), axis=3),
                           self.og.test.labels[i])
                         for i in batch_i if i is not None]
             else:
