@@ -39,19 +39,27 @@ if __name__ == '__main__':
 
     # create graph
     print('creating graph')
-    input_size, output_size = d.get_io_size(FLAGS.dataset)
+    input_size, output_size = d.get_io_size(FLAGS.dataset, FLAGS.procedure)
     if FLAGS.procedure == 'train':
         keep_inp, keep, temp, labels_temp = u.create_optional_params()
     temp = tf.placeholder(tf.float32, name='temp')
+    if FLAGS.procedure == 'train_conv':
+        labels_temp = tf.placeholder(tf.float32, name='labels_temp')
 
     if FLAGS.procedure == 'train':
-        inp, labels, keep_inp, keep, labels_temp = p.get(
+        inp, labels, labels_temp = p.get(
                 FLAGS.procedure).create_placeholders(sess, input_size, output_size, (keep_inp, keep, temp, labels_temp))
+    elif FLAGS.procedure == 'train_conv':
+        inp, labels, keep_inp, keep, labels_temp = p.get(
+                FLAGS.procedure).create_placeholders(sess, input_size, output_size, (temp, labels_temp))
     else:
         inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
     labels_evaldistill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
 
-    out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
+    if FLAGS.model == 'lenet':
+        out = m.get(FLAGS.model).create_model(inp, output_size, temp)
+    else:
+        out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
     print('all graphs created for train')
 
     if FLAGS.procedure == 'train':
@@ -59,6 +67,10 @@ if __name__ == '__main__':
         tf.add_to_collection('output', out)
         tf.add_to_collection('keep', keep)
         tf.add_to_collection('keep_inp', keep_inp)
+        tf.add_to_collection('labels_temp', temp) # not wrong dw
+    elif FLAGS.procedure == 'train_conv':
+        tf.add_to_collection('input', inp)
+        tf.add_to_collection('output', out)
         tf.add_to_collection('labels_temp', temp) # not wrong dw
 
     loss, train_step = u.create_train_ops(out, labels)
@@ -80,6 +92,9 @@ if __name__ == '__main__':
     if FLAGS.procedure == 'train':
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, keep_inp, keep, temp, labels_temp), train_step, summary_op)
+    elif FLAGS.procedure == 'train_conv':
+        p.get(FLAGS.procedure).run(sess, FLAGS, data,
+                (inp, labels, temp, labels_temp), train_step, summary_op)
     else:
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)

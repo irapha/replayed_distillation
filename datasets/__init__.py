@@ -15,8 +15,10 @@ def get(dataset_name):
     else:
         raise NotImplemented('This dataset not implemented')
 
-def get_io_size(dataset_name):
+def get_io_size(dataset_name, procedure):
     if dataset_name in ['mnist', 'mnist_bottleneck']:
+        if procedure in ['train_conv', 'replay_conv']:
+            return 1024, 10
         return 784, 10
     else:
         raise NotImplemented('This dataset not implemented')
