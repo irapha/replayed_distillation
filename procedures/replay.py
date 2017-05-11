@@ -266,7 +266,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                             ))
                     )
         with tf.variable_scope('opt_recreated'):
-            recreate_op = tf.train.AdamOptimizer(learning_rate=0.14).minimize(recreate_loss) # lr was 0.07
+            recreate_op = tf.train.AdamOptimizer(learning_rate=0.09).minimize(recreate_loss) # lr was 0.07
 
         reinit_op = tf.variables_initializer(u.get_uninitted_vars(sess), name='reinit_op')
         sess.run(reinit_op)
@@ -370,7 +370,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         all_stats['teacher_stats'] = compute_class_statistics(sess,
                 '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value, stddev=True)
         np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
-        print('stats_saved')
+        print('stats saved : stats/activation_stats_{}.npy'.format(f.run_name))
 
 
 def create_placeholders(sess, input_size, output_size, _):
