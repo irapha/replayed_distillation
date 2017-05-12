@@ -16,8 +16,8 @@ import utils as u
 
 from utils import ensure_dir_exists
 
-MODEL_META = 'summaries/train_model_withcollect/checkpoint/hinton1200-8000.meta'
-MODEL_CHECKPOINT = 'summaries/train_model_withcollect/checkpoint/hinton1200-8000'
+MODEL_META = 'summaries/train_lenet_realinit/checkpoint/lenet-8000.meta'
+MODEL_CHECKPOINT = 'summaries/train_lenet_realinit/checkpoint/lenet-8000'
 
 # TODOS:
 # - [done] see how relu + l2 reconstruction look like
@@ -66,12 +66,14 @@ def merge_summary_list(summary_list, do_print=False):
 def get_dropout_filter(shape1, shape2, keep_prob):
     return np.random.binomial(1, keep_prob, size=[shape1, shape2])
 
-def compute_class_statistics(sess, act_tensor, inp, keep_inp, keep, data, temp, temp_val, stddev=False):
+def compute_class_statistics(sess, act_tensor, inp, data, temp, temp_val, stddev=False):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
         batch_out = sess.run(act_tensor,
-                feed_dict={inp: batch_x, keep_inp: 1.0, keep: 1.0, temp: temp_val})
+                feed_dict={inp: batch_x,
+                    #  keep_inp: 1.0, keep: 1.0,
+                    temp: temp_val})
 
         for act, y in zip(batch_out, batch_y):
             clas = np.where(y == 1)[0][0]
@@ -121,8 +123,10 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         latent_recreated, recreate_loss, reinit_op, temp_recreated,
         temp_rec_val, drop_dict):
 
-    act_stats,fc2_stats, fc1_stats = stats
-    act_placeholder, fc2_placeholder, fc1_placeholder = latent_placeholder
+    #  act_stats,fc2_stats, fc1_stats = stats
+    conv1_stats, conv2_stats, fc1_stats, fc2_stats, fc3_stats = stats
+    #  act_placeholder, fc2_placeholder, fc1_placeholder = latent_placeholder
+    conv1_placeholder, conv2_placeholder, fc1_placeholder, fc2_placeholder, fc3_placeholder = latent_placeholder
 
     # these hyper params can be tuned
     num_examples_per_median = 64
@@ -142,9 +146,12 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             all_latents.append(latent[0])
             latent = [latent[0]] * num_examples_per_median
         elif METHOD == 'manysample':
-            act_latent = sample_from_stats(act_stats, clas, num_examples_per_median, 10)
-            fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 1200)
+            # TODO CONV: fix these shapes probs
+            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 1200)
+            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 1200)
             fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 1200)
+            fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 1200)
+            fc3_latent = sample_from_stats(fc3_stats, clas, num_examples_per_median, 10)
         print('\tmedian: {}'.format(i))
 
         # currently setting noise to 0.1 and samples to 64, just bc that will make things easier rn
@@ -153,23 +160,26 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
 
         # TODO: remove
         #  input_kernels = [np.reshape(np.random.uniform(low=0.0, high=0.2, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
-        input_kernels = [np.reshape(np.random.normal(0.15, 0.1, size=[28, 28]), [784]) for _ in range(num_examples_per_median)]
+        input_kernels = [np.reshape(np.random.normal(0.15, 0.1, size=[28, 28]), [32, 32, 1]) for _ in range(num_examples_per_median)]
 
         sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
         # TODO NIPS: use drop_dict
-        sess.run(drop_dict['assign_drop_inp_op'],
-                feed_dict={drop_dict['drop_inp_place']: get_dropout_filter(batch_size, 784, 0.8)})
-        sess.run(drop_dict['assign_drop_fc1_op'],
-                feed_dict={drop_dict['drop_fc1_place']: get_dropout_filter(batch_size, 1200, 0.5)})
-        sess.run(drop_dict['assign_drop_fc2_op'],
-                feed_dict={drop_dict['drop_fc2_place']: get_dropout_filter(batch_size, 1200, 0.5)})
+        #  sess.run(drop_dict['assign_drop_inp_op'],
+                #  feed_dict={drop_dict['drop_inp_place']: get_dropout_filter(batch_size, 784, 0.8)})
+        #  sess.run(drop_dict['assign_drop_fc1_op'],
+                #  feed_dict={drop_dict['drop_fc1_place']: get_dropout_filter(batch_size, 1200, 0.5)})
+        #  sess.run(drop_dict['assign_drop_fc2_op'],
+                #  feed_dict={drop_dict['drop_fc2_place']: get_dropout_filter(batch_size, 1200, 0.5)})
 
         for _ in range(1000):
             _, los = sess.run([recreate_op, recreate_loss],
-                    feed_dict={act_placeholder: act_latent,
-                        fc2_placeholder: fc2_latent,
+                    feed_dict={
+                        conv1_placeholder: conv1_latent,
+                        conv2_placeholder: conv2_latent,
                         fc1_placeholder: fc1_latent,
+                        fc2_placeholder: fc2_latent,
+                        fc3_placeholder: fc3_latent,
                         temp_recreated: temp_rec_val})
 
         all_latents.extend(sess.run('const/div:0', feed_dict={temp_recreated: temp_rec_val}))
@@ -210,40 +220,47 @@ def compute_optimized_examples(sess, stats, train_batch_size,
 
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
-    inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
+    #  inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
+    #  inp, labels, temp, labels_temp = placeholders
+    inp, labels, temp, labels_temp, labels_evaldistill = placeholders
 
     # create same model with constants instead of vars. And a Variable as input
     print('creating const graph')
     with tf.variable_scope('const'):
-        act_placeholder = tf.placeholder(tf.float32, [None, 10], name='act_placeholder')
+        # TODO CONV: fix shapes for these conv placeholders. probably will involve modifying sampling bc of reshaping into 4 dims
+        fc3_placeholder = tf.placeholder(tf.float32, [None, 10], name='fc3_placeholder')
         fc2_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc2_placeholder')
         fc1_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc1_placeholder')
-        input_placeholder = tf.placeholder(tf.float32, [None, 784], name='input_placeholder')
-        input_var = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='recreated_imgs')
+        conv2_placeholder = tf.placeholder(tf.float32, [None, 1200], name='conv2_placeholder')
+        conv1_placeholder = tf.placeholder(tf.float32, [None, 1200], name='conv1_placeholder')
+
+        input_placeholder = tf.placeholder(tf.float32, [None, 32, 32, 1], name='input_placeholder')
+        input_var = tf.Variable(tf.zeros([f.train_batch_size, 32, 32, 1]), name='recreated_imgs')
         temp_recreated = tf.placeholder(tf.float32, name='temp_recreated')
         sess.run(tf.variables_initializer([input_var], name='init_input'))
         assign_op = tf.assign(input_var, input_placeholder)
 
         drop_dict = {}
-        drop_dict['drop_inp_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 784], name='drop_inp_place')
-        drop_dict['drop_inp_var'] = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='drop_inp_var')
-        drop_dict['assign_drop_inp_op'] = tf.assign(drop_dict['drop_inp_var'], drop_dict['drop_inp_place'])
+        #  drop_dict['drop_inp_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 784], name='drop_inp_place')
+        #  drop_dict['drop_inp_var'] = tf.Variable(tf.zeros([f.train_batch_size, 784]), name='drop_inp_var')
+        #  drop_dict['assign_drop_inp_op'] = tf.assign(drop_dict['drop_inp_var'], drop_dict['drop_inp_place'])
 
-        drop_dict['drop_fc1_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 1200], name='drop_fc1_place')
-        drop_dict['drop_fc1_var'] = tf.Variable(tf.zeros([f.train_batch_size, 1200]), name='drop_fc1_var')
-        drop_dict['assign_drop_fc1_op'] = tf.assign(drop_dict['drop_fc1_var'], drop_dict['drop_fc1_place'])
+        #  drop_dict['drop_fc1_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 1200], name='drop_fc1_place')
+        #  drop_dict['drop_fc1_var'] = tf.Variable(tf.zeros([f.train_batch_size, 1200]), name='drop_fc1_var')
+        #  drop_dict['assign_drop_fc1_op'] = tf.assign(drop_dict['drop_fc1_var'], drop_dict['drop_fc1_place'])
 
-        drop_dict['drop_fc2_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 1200], name='drop_fc2_place')
-        drop_dict['drop_fc2_var'] = tf.Variable(tf.zeros([f.train_batch_size, 1200]), name='drop_fc2_var')
-        drop_dict['assign_drop_fc2_op'] = tf.assign(drop_dict['drop_fc2_var'], drop_dict['drop_fc2_place'])
+        #  drop_dict['drop_fc2_place'] = tf.placeholder(tf.float32, [f.train_batch_size, 1200], name='drop_fc2_place')
+        #  drop_dict['drop_fc2_var'] = tf.Variable(tf.zeros([f.train_batch_size, 1200]), name='drop_fc2_var')
+        #  drop_dict['assign_drop_fc2_op'] = tf.assign(drop_dict['drop_fc2_var'], drop_dict['drop_fc2_place'])
 
-        latent_recreated = tf.div(m.get('hinton1200').create_constant_model(sess, input_var, drop_dict), temp_recreated)
+        latent_recreated = tf.div(m.get('lenet').create_constant_model(sess, input_var, drop_dict), temp_recreated)
         with tf.variable_scope('xent_recreated'):
             if METHOD == 'onehot':
                 sft = latent_placeholder
             else:
                 #  sft = tf.nn.sigmoid(latent_placeholder)
                 #  sft = tf.nn.softmax(latent_placeholder)
+                # TODO CONV: replace this optimization objective with all conv layers
                 act_sft = tf.nn.relu(act_placeholder)
                 fc2_sft = tf.nn.relu(fc2_placeholder)
                 fc1_sft = tf.nn.relu(fc1_placeholder)
@@ -291,11 +308,15 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         temp_value = 8.0
         # TODO: midlayer
         print('computing stats 1')
-        act_stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        conv1_stats = compute_class_statistics(sess, 'lenet-5/conv1/add', inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 2')
-        fc2_stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        conv2_stats = compute_class_statistics(sess, 'lenet-5/conv2/add', inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 3')
-        fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        fc1_stats = compute_class_statistics(sess, 'lenet-5/fc1/add', inp, data, 'temp_1_1:0', temp_value)
+        print('computing stats 4')
+        fc2_stats = compute_class_statistics(sess, 'lenet-5/fc2/add', inp, data, 'temp_1_1:0', temp_value)
+        print('computing stats 5')
+        fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', inp, data, 'temp_1_1:0', temp_value)
         print('all stats computed')
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
@@ -303,8 +324,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             data_optimized = np.load('stats/data_optimized_{}.npy'.format(f.run_name))[()]
         elif load_procedure == 'reconstruct_before':
             print('reconstructing optimized data')
-            stats = act_stats,fc2_stats, fc1_stats
-            latent_placeholder = act_placeholder, fc2_placeholder, fc1_placeholder
+            stats = conv1_stats, conv2_stats, fc1_stats, fc2_stats, fc3_stats
+            #  latent_placeholder = act_placeholder, fc2_placeholder, fc1_placeholder
+            latent_placeholder = conv1_placeholder, conv2_placeholder, fc1_placeholder, fc2_placeholder, fc3_placeholder
             data_optimized = compute_optimized_examples(sess, stats,
                     f.train_batch_size, input_placeholder, latent_placeholder,
                     input_var, assign_op, recreate_op, data, latent_recreated,
@@ -330,7 +352,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
-                            keep_inp: 1.0, keep: 1.0,
+                            #  keep_inp: 1.0, keep: 1.0,
                             'temp_1_1:0': 8.0, temp: 8.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
@@ -342,7 +364,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: test_batch_x,
                                     labels_evaldistill: test_batch_y,
-                                    keep_inp: 1.0, keep: 1.0,
+                                    #  keep_inp: 1.0, keep: 1.0,
                                     'temp_1_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     test_writer.add_summary(merge_summary_list(summaries, True), global_step)
@@ -353,7 +375,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x,
                                     labels_evaldistill: train_batch_y,
-                                    keep_inp: 1.0, keep: 1.0,
+                                    #  keep_inp: 1.0, keep: 1.0,
                                     'temp_1_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
@@ -369,9 +391,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # post training, save statistics
         all_stats = {}
         all_stats['student_stats'] = compute_class_statistics(sess,
-                '784-800-800-10/temp/div:0', inp, keep_inp, keep, data, 'temp:0', temp_value, stddev=True)
+                'lenet-5_half/temp/div:0', inp, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
-                '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value, stddev=True)
+                'lenet-5/temp/div:0', inp, data, 'temp_1_1:0', temp_value, stddev=True)
         np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats saved : stats/activation_stats_{}.npy'.format(f.run_name))
 
@@ -382,8 +404,8 @@ def create_placeholders(sess, input_size, output_size, _):
 
     inp = tf.get_collection('input')[0]
     out = tf.get_collection('output')[0]
-    keep_inp = tf.get_collection('keep_inp')[0]
-    keep = tf.get_collection('keep')[0]
+    #  keep_inp = tf.get_collection('keep_inp')[0]
+    #  keep = tf.get_collection('keep')[0]
     labels_temp = tf.get_collection('labels_temp')[0]
 
     with tf.variable_scope('labels_sftmx'):
@@ -392,4 +414,4 @@ def create_placeholders(sess, input_size, output_size, _):
     with tf.variable_scope('stoppp'):
         labels = tf.stop_gradient(labels)
 
-    return inp, labels, keep_inp, keep, labels_temp
+    return inp, labels, None, None, labels_temp

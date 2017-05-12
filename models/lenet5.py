@@ -63,34 +63,44 @@ def create_model(inp, out_size, temp=1.0):
 
 
 def create_constant_model(sess, inp, drop_dict):
-    with tf.variable_scope('784-1200-1200-10_const'):
-        with tf.variable_scope('inp_drop'):
-            # mere rescaling
-            #  inp = inp * 0.8
-            # TODO NIPS: use drop_dict
-            inp = tf.multiply(inp, drop_dict['drop_inp_var'])
+    with tf.variable_scope('lenet-5_const'):
+        with tf.variable_scope('conv1'):
+            conv1_w = tf.constant(sess.run('lenet-5/conv1/conv1_w:0'), name='conv1_w')
+            conv1_b = tf.constant(sess.run('lenet-5/conv1/conv1_b:0'), name='conv1_b')
+            conv1 = tf.nn.conv2d(inp, conv1_w, strides=[1,1,1,1], padding='VALID') + conv1_b
+            conv1 = tf.nn.relu(conv1)
+
+        with tf.variable_scope('pool1'):
+            pool_1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID')
+
+        with tf.variable_scope('conv2'):
+            conv2_w = tf.constant(sess.run('lenet-5/conv2/conv2_w:0'), name='conv2_w')
+            conv2_b = tf.constant(sess.run('lenet-5/conv2/conv2_b:0'), name='conv2_b')
+            conv2 = tf.nn.conv2d(pool_1, conv2_w, strides=[1,1,1,1], padding='VALID') + conv2_b
+            conv2 = tf.nn.relu(conv2)
+
+        with tf.variable_scope('pool2'):
+            pool_2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID')
+
+        with tf.variable_scope('flatten'):
+            fc1 = flatten(pool_2)
 
         with tf.variable_scope('fc1'):
-            w = tf.constant(sess.run('784-1200-1200-10/fc1/w:0'), name='w')
-            b = tf.constant(sess.run('784-1200-1200-10/fc1/b:0'), name='b')
-            z = tf.nn.relu(tf.matmul(inp, w) + b, name='relu')
-            # mere rescaling
-            #  z = z * 0.5
-            # TODO NIPS: use drop_dict
-            z = tf.multiply(z, drop_dict['drop_fc1_var'])
+            fc1_w = tf.constant(sess.run('lenet-5/fc1/fc1_w:0'), name='fc1_w')
+            fc1_b = tf.constant(sess.run('lenet-5/fc1/fc1_b:0'), name='fc1_b')
+            fc1 = tf.matmul(fc1,fc1_w) + fc1_b
+            fc1 = tf.nn.relu(fc1)
 
         with tf.variable_scope('fc2'):
-            w = tf.constant(sess.run('784-1200-1200-10/fc2/w:0'), name='w')
-            b = tf.constant(sess.run('784-1200-1200-10/fc2/b:0'), name='b')
-            z = tf.nn.relu(tf.matmul(z, w) + b, name='relu')
-            #  z = z * 0.5
-            # TODO NIPS: use drop_dict
-            z = tf.multiply(z, drop_dict['drop_fc2_var'])
+            fc2_w = tf.constant(sess.run('lenet-5/fc2/fc2_w:0'), name='fc2_w')
+            fc2_b = tf.constant(sess.run('lenet-5/fc2/fc2_b:0'), name='fc2_b')
+            fc2 = tf.matmul(fc1,fc2_w) + fc2_b
+            fc2 = tf.nn.relu(fc2)
 
         with tf.variable_scope('fc3'):
-            w = tf.constant(sess.run('784-1200-1200-10/fc3/w:0'), name='w')
-            b = tf.constant(sess.run('784-1200-1200-10/fc3/b:0'), name='b')
-            h = tf.matmul(z, w) + b
+            fc3_w = tf.constant(sess.run('lenet-5/fc3/fc3_w:0'), name='fc3_w')
+            fc3_b = tf.constant(sess.run('lenet-5/fc3/fc3_b:0'), name='fc3_b')
+            logits = tf.matmul(fc2, fc3_w) + fc3_b
 
-    return h
+    return logits
 

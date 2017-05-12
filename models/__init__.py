@@ -3,6 +3,9 @@ def get(model_name):
     if model_name == 'lenet':
         from . import lenet5 as d
         return d
+    if model_name == 'lenet_half':
+        from . import lenet5_half as d
+        return d
     if model_name == 'hinton1200':
         from . import hinton1200 as d
         return d

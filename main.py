@@ -56,7 +56,7 @@ if __name__ == '__main__':
         inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
     labels_evaldistill = tf.placeholder(tf.float32, [None, output_size], name='labels_evaldistill')
 
-    if FLAGS.model == 'lenet':
+    if 'lenet' in FLAGS.model:
         out = m.get(FLAGS.model).create_model(inp, output_size, temp)
     else:
         out = m.get(FLAGS.model).create_model(inp, output_size, keep_inp, keep, temp)
@@ -95,6 +95,9 @@ if __name__ == '__main__':
     elif FLAGS.procedure == 'train_conv':
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, temp, labels_temp), train_step, summary_op)
+    elif FLAGS.procedure == 'replay_conv':
+        p.get(FLAGS.procedure).run(sess, FLAGS, data,
+                (inp, labels, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
     else:
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
