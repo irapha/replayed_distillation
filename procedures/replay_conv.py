@@ -35,6 +35,8 @@ MODEL_CHECKPOINT = 'summaries/train_lenet_realinit/checkpoint/lenet-8000'
 # - make it work with convolutions
 # - see how well it does with just initializing student using matrix factorization techniques
 
+# CURRENTLY WORKING IN TODO CONV.
+
 def merge_summary_list(summary_list, do_print=False):
     summary_dict = {}
 
@@ -70,7 +72,7 @@ def compute_class_statistics(sess, act_tensor, inp, data, temp, temp_val, stddev
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
-        batch_out = sess.run(act_tensor,
+        batch_out = sess.run(tf.reshape(act_tensor, [50, -1]),
                 feed_dict={inp: batch_x,
                     #  keep_inp: 1.0, keep: 1.0,
                     temp: temp_val})
@@ -88,6 +90,10 @@ def compute_class_statistics(sess, act_tensor, inp, data, temp, temp_val, stddev
 
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
+        # TODO CONV: probably flatten before cholesky, then probably unflatten when feeding as placeholder
+        # should be done. im flatening above^ at sess.run. then we store the
+        # flatenned stats. those can be directly sampled and fed as flat to
+        # graph.
         cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
         stdev[k] = np.sqrt(np.var(v, axis=0))
 
@@ -147,10 +153,11 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
             latent = [latent[0]] * num_examples_per_median
         elif METHOD == 'manysample':
             # TODO CONV: fix these shapes probs
-            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 1200)
-            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 1200)
-            fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 1200)
-            fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 1200)
+            # should be done.
+            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6)
+            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16)
+            fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 120)
+            fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 84)
             fc3_latent = sample_from_stats(fc3_stats, clas, num_examples_per_median, 10)
         print('\tmedian: {}'.format(i))
 
@@ -228,11 +235,12 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
     print('creating const graph')
     with tf.variable_scope('const'):
         # TODO CONV: fix shapes for these conv placeholders. probably will involve modifying sampling bc of reshaping into 4 dims
+        # should be done.
         fc3_placeholder = tf.placeholder(tf.float32, [None, 10], name='fc3_placeholder')
-        fc2_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc2_placeholder')
-        fc1_placeholder = tf.placeholder(tf.float32, [None, 1200], name='fc1_placeholder')
-        conv2_placeholder = tf.placeholder(tf.float32, [None, 1200], name='conv2_placeholder')
-        conv1_placeholder = tf.placeholder(tf.float32, [None, 1200], name='conv1_placeholder')
+        fc2_placeholder = tf.placeholder(tf.float32, [None, 84], name='fc2_placeholder')
+        fc1_placeholder = tf.placeholder(tf.float32, [None, 120], name='fc1_placeholder')
+        conv2_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 10*10*16], name='conv2_placeholder'), [-1, 10, 10, 6])
+        conv1_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 28*28*6], name='conv1_placeholder'), [-1, 28, 28, 6])
 
         input_placeholder = tf.placeholder(tf.float32, [None, 32, 32, 1], name='input_placeholder')
         input_var = tf.Variable(tf.zeros([f.train_batch_size, 32, 32, 1]), name='recreated_imgs')
@@ -260,28 +268,43 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             else:
                 #  sft = tf.nn.sigmoid(latent_placeholder)
                 #  sft = tf.nn.softmax(latent_placeholder)
-                # TODO CONV: replace this optimization objective with all conv layers
-                act_sft = tf.nn.relu(act_placeholder)
-                fc2_sft = tf.nn.relu(fc2_placeholder)
+                conv1_sft = tf.nn.relu(conv1_placeholder)
+                conv2_sft = tf.nn.relu(conv2_placeholder)
                 fc1_sft = tf.nn.relu(fc1_placeholder)
+                fc2_sft = tf.nn.relu(fc2_placeholder)
+                fc3_sft = tf.nn.relu(fc3_placeholder)
                 #  sft = latent_placeholder
+                # TODO CONV: replace this optimization objective with all conv layers, properly rescaled to the layer shapes.
+                # should be done. just need to verify names and check that this works
             recreate_loss = (
-                    ((1.0/800) *
+                    ((1.0/(28*28*6)) *
                         tf.reduce_mean(
-                            tf.pow((act_sft - tf.nn.relu(
-                                tf.get_default_graph().get_tensor_by_name('const/div:0')
+                            tf.pow((conv1_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/lenet-5_const/conv1/add:0')
                                 )), 2)
                             )) +
-                    ((1.0/1200) *
+                    ((1.0/(10*10*16)) *
                         tf.reduce_mean(
-                            tf.pow((fc2_sft - tf.nn.relu(
-                                tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc2/add:0')
+                            tf.pow((conv2_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/lenet-5_const/conv2/add:0')
                                 )), 2)
                             )) +
-                    ((1.0/1200) *
+                    ((1.0/120) *
                         tf.reduce_mean(
                             tf.pow((fc1_sft - tf.nn.relu(
-                                tf.get_default_graph().get_tensor_by_name('const/784-1200-1200-10_const/fc1/add:0')
+                                tf.get_default_graph().get_tensor_by_name('const/lenet-5_const/fc1/add:0')
+                                )), 2)
+                            )) +
+                    ((1.0/84) *
+                        tf.reduce_mean(
+                            tf.pow((fc2_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/lenet-5_const/fc2/add:0')
+                                )), 2)
+                            )) +
+                    ((1.0/10) *
+                        tf.reduce_mean(
+                            tf.pow((fc3_sft - tf.nn.relu(
+                                tf.get_default_graph().get_tensor_by_name('const/div:0')
                                 )), 2)
                             ))
                     )
