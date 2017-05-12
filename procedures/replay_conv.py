@@ -68,12 +68,14 @@ def merge_summary_list(summary_list, do_print=False):
 def get_dropout_filter(shape1, shape2, keep_prob):
     return np.random.binomial(1, keep_prob, size=[shape1, shape2])
 
-def compute_class_statistics(sess, act_tensor, inp, data, temp, temp_val, stddev=False):
+def compute_class_statistics(sess, act_tensor, flat_shape, inp, data, temp, temp_val, stddev=False):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
-        batch_size = len(batch_x)
+        #  batch_size = len(batch_x)
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
-        batch_out = sess.run(tf.reshape(act_tensor, [batch_size, -1]),
+        #  print(np.shape(batch_x))
+        #  print(tf.get_default_graph().get_tensor_by_name(act_tensor+':0'))
+        batch_out = sess.run(tf.reshape(act_tensor, [-1, flat_shape]),
                 feed_dict={inp: batch_x,
                     #  keep_inp: 1.0, keep: 1.0,
                     temp: temp_val})
@@ -332,15 +334,15 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         temp_value = 8.0
         # TODO: midlayer
         print('computing stats 1')
-        conv1_stats = compute_class_statistics(sess, 'lenet-5/conv1/add', inp, data, 'temp_1_1:0', temp_value)
+        conv1_stats = compute_class_statistics(sess, 'lenet-5/conv1/add', 28*28*6, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 2')
-        conv2_stats = compute_class_statistics(sess, 'lenet-5/conv2/add', inp, data, 'temp_1_1:0', temp_value)
+        conv2_stats = compute_class_statistics(sess, 'lenet-5/conv2/add', 10*10*16, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 3')
-        fc1_stats = compute_class_statistics(sess, 'lenet-5/fc1/add', inp, data, 'temp_1_1:0', temp_value)
+        fc1_stats = compute_class_statistics(sess, 'lenet-5/fc1/add', 120, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 4')
-        fc2_stats = compute_class_statistics(sess, 'lenet-5/fc2/add', inp, data, 'temp_1_1:0', temp_value)
+        fc2_stats = compute_class_statistics(sess, 'lenet-5/fc2/add', 84, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 5')
-        fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', inp, data, 'temp_1_1:0', temp_value)
+        fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', 10, inp, data, 'temp_1_1:0', temp_value)
         print('all stats computed')
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
