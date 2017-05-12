@@ -98,7 +98,8 @@ def compute_class_statistics(sess, act_tensor, flat_shape, inp, data, temp, temp
         # flatenned stats. those can be directly sampled and fed as flat to
         # graph.
         # TODO CONV: figure out a way to use cov and chol. apparently conv1 is not positive definite...
-        #  cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
+        if conv not in act_tensor:
+            cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
         stdev[k] = np.sqrt(np.var(v, axis=0))
 
     if stddev:
