@@ -75,74 +75,30 @@ def compute_class_statistics(sess, act_tensor, flat_shape, inp, data, temp, temp
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
         #  print(np.shape(batch_x))
         ten = tf.get_default_graph().get_tensor_by_name(act_tensor+':0')
-        if 'conv1' in act_tensor:
-            batch_out_filters = sess.run(tf.reshape(tf.transpose(ten, [3, 0, 1, 2]), [6, -1, 784]),
-                    feed_dict={inp: batch_x,
-                        #  keep_inp: 1.0, keep: 1.0,
-                        temp: temp_val})
+        batch_out = sess.run(tf.reshape(ten, [-1, flat_shape]),
+                feed_dict={inp: batch_x,
+                    #  keep_inp: 1.0, keep: 1.0,
+                    temp: temp_val})
 
-            for i, batch_out in enumerate(batch_out_filters):
-                if i not in all_activations:
-                    all_activations[i] = {}
-                for act, y in zip(batch_out, batch_y):
-                    clas = np.where(y == 1)[0][0]
-                    if clas not in all_activations[i]:
-                        all_activations[i][clas] = []
-                    all_activations[i][clas].append(act)
-        elif 'conv2' in act_tensor:
-            batch_out_filters = sess.run(tf.reshape(tf.transpose(ten, [3, 0, 1, 2]), [16, -1, 100]),
-                    feed_dict={inp: batch_x,
-                        #  keep_inp: 1.0, keep: 1.0,
-                        temp: temp_val})
-
-            for i, batch_out in enumerate(batch_out_filters):
-                if i not in all_activations:
-                    all_activations[i] = {}
-                for act, y in zip(batch_out, batch_y):
-                    clas = np.where(y == 1)[0][0]
-                    if clas not in all_activations[i]:
-                        all_activations[i][clas] = []
-                    all_activations[i][clas].append(act)
-        else:
-            batch_out = sess.run(tf.reshape(ten, [-1, flat_shape]),
-                    feed_dict={inp: batch_x,
-                        #  keep_inp: 1.0, keep: 1.0,
-                        temp: temp_val})
-
-            for act, y in zip(batch_out, batch_y):
-                clas = np.where(y == 1)[0][0]
-                if clas not in all_activations:
-                    all_activations[clas] = []
-                all_activations[clas].append(act)
+        for act, y in zip(batch_out, batch_y):
+            clas = np.where(y == 1)[0][0]
+            if clas not in all_activations:
+                all_activations[clas] = []
+            all_activations[clas].append(act)
 
     # consolidate them:
     means = {}
     cov = {}
     stdev = {}
-    if 'conv1' in act_tensor or 'conv2' in act_tensor:
-        for filt, acts in all_activations.items():
-            means[filt] = {}
-            cov[filt] = {}
-            stdev[filt] = {}
-            for k, v in acts.items():
-                means[filt][k] = np.mean(v, axis=0)
-                # TODO CONV: probably flatten before cholesky, then probably unflatten when feeding as placeholder
-                # should be done. im flatening above^ at sess.run. then we store the
-                # flatenned stats. those can be directly sampled and fed as flat to
-                # graph.
-                print('shape of cov matrix: {}'.format(np.shape(np.cov(np.transpose(v)))))
-                cov[filt][k] = np.linalg.cholesky(np.cov(np.transpose(v)))
-                stdev[filt][k] = np.sqrt(np.var(v, axis=0))
-    else:
-        for k, v in all_activations.items():
-            means[k] = np.mean(v, axis=0)
-            # TODO CONV: probably flatten before cholesky, then probably unflatten when feeding as placeholder
-            # should be done. im flatening above^ at sess.run. then we store the
-            # flatenned stats. those can be directly sampled and fed as flat to
-            # graph.
-            print('shape of cov matrix: {}'.format(np.shape(np.cov(np.transpose(v)))))
-            cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
-            stdev[k] = np.sqrt(np.var(v, axis=0))
+
+    for k, v in all_activations.items():
+        means[k] = np.mean(v, axis=0)
+        # TODO CONV: probably flatten before cholesky, then probably unflatten when feeding as placeholder
+        # should be done. im flatening above^ at sess.run. then we store the
+        # flatenned stats. those can be directly sampled and fed as flat to
+        # graph.
+        cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
+        stdev[k] = np.sqrt(np.var(v, axis=0))
 
     if stddev:
         return means, cov, stdev
