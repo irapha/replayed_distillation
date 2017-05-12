@@ -97,24 +97,32 @@ def compute_class_statistics(sess, act_tensor, flat_shape, inp, data, temp, temp
         # should be done. im flatening above^ at sess.run. then we store the
         # flatenned stats. those can be directly sampled and fed as flat to
         # graph.
-        cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
+        # TODO CONV: figure out a way to use cov and chol. apparently conv1 is not positive definite...
+        #  cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
         stdev[k] = np.sqrt(np.var(v, axis=0))
 
     if stddev:
         return means, cov, stdev
+    # TODO CONV: s/stdev/cov -> as soon as you fix the cov todo above^
+    if 'conv' in act_tensor:
+        return means, stdev
     return means, cov
 
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
-def sample_from_stats(stats, clas, batch_size, out_size):
+def sample_from_stats(stats, clas, batch_size, out_size, is_conv=False):
     means, cov = stats
     out_size = means[list(means.keys())[0]].shape[0]
     gauss = np.random.normal(size=(batch_size, out_size))
-    pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
-    #  pre_sftmx = means[clas] + np.multiply(gauss, cov[clas])
+    # TODO CONV: this cov is actually stdev so we're doing element wise gaussian. revert to matrix once we use cov again
+    if is_conv:
+        pre_sftmx = means[clas] + np.multiply(gauss, cov[clas])
+    else:
+        pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
     return pre_sftmx
+    #  pre_sftmx = means[clas] + np.multiply(gauss, cov[clas])
     #  return [softmax(x) for x in pre_sftmx]
 
 #def gkern(size=28, sig=4, noise=0.1):
@@ -157,8 +165,8 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         elif METHOD == 'manysample':
             # TODO CONV: fix these shapes probs
             # should be done.
-            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6)
-            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16)
+            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6, is_conv=True)
+            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16, is_conv=True)
             fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 120)
             fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 84)
             fc3_latent = sample_from_stats(fc3_stats, clas, num_examples_per_median, 10)
