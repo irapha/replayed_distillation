@@ -71,8 +71,9 @@ def get_dropout_filter(shape1, shape2, keep_prob):
 def compute_class_statistics(sess, act_tensor, inp, data, temp, temp_val, stddev=False):
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
+        batch_size = len(batch_x)
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
-        batch_out = sess.run(tf.reshape(act_tensor, [50, -1]),
+        batch_out = sess.run(tf.reshape(act_tensor, [batch_size, -1]),
                 feed_dict={inp: batch_x,
                     #  keep_inp: 1.0, keep: 1.0,
                     temp: temp_val})
