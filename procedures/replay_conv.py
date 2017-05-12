@@ -70,7 +70,7 @@ def get_dropout_filter(shape1, shape2, keep_prob):
 
 def compute_class_statistics(sess, act_tensor, flat_shape, inp, data, temp, temp_val, stddev=False):
     all_activations = {}
-    for batch_x, batch_y in data.train_epoch_in_batches(50):
+    for batch_x, batch_y in data.train_epoch_in_batches(50, size=32):
         #  batch_size = len(batch_x)
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
         #  print(np.shape(batch_x))
@@ -386,7 +386,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 if global_step % f.eval_interval == 0:
                     # eval test
                     summaries = []
-                    for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
+                    for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size, size=32):
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: test_batch_x,
                                     labels_evaldistill: test_batch_y,
@@ -397,7 +397,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
                     # eval train
                     summaries = []
-                    for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
+                    for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size, size=32):
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x,
                                     labels_evaldistill: train_batch_y,
