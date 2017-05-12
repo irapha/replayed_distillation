@@ -378,15 +378,15 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         temp_value = 8.0
         # TODO: midlayer
         print('computing stats 1')
-        conv1_stats = compute_class_statistics(sess, 'lenet-5/conv1/add', 28*28*6, inp, data, 'temp_1:0', temp_value)
+        conv1_stats = compute_class_statistics(sess, 'lenet-5/conv1/add', 28*28*6, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 2')
-        conv2_stats = compute_class_statistics(sess, 'lenet-5/conv2/add', 10*10*16, inp, data, 'temp_1:0', temp_value)
+        conv2_stats = compute_class_statistics(sess, 'lenet-5/conv2/add', 10*10*16, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 3')
-        fc1_stats = compute_class_statistics(sess, 'lenet-5/fc1/add', 120, inp, data, 'temp_1:0', temp_value)
+        fc1_stats = compute_class_statistics(sess, 'lenet-5/fc1/add', 120, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 4')
-        fc2_stats = compute_class_statistics(sess, 'lenet-5/fc2/add', 84, inp, data, 'temp_1:0', temp_value)
+        fc2_stats = compute_class_statistics(sess, 'lenet-5/fc2/add', 84, inp, data, 'temp_1_1:0', temp_value)
         print('computing stats 5')
-        fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', 10, inp, data, 'temp_1:0', temp_value)
+        fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', 10, inp, data, 'temp_1_1:0', temp_value)
         print('all stats computed')
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
@@ -423,7 +423,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
                             #  keep_inp: 1.0, keep: 1.0,
-                            'temp_1:0': 8.0, temp: 8.0})
+                            'temp_1_1:0': 8.0, temp: 8.0})
 
                 trainbatch_writer.add_summary(summary, global_step)
 
@@ -435,7 +435,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                                 feed_dict={inp: test_batch_x,
                                     labels_evaldistill: test_batch_y,
                                     #  keep_inp: 1.0, keep: 1.0,
-                                    'temp_1:0': 1.0, temp: 1.0})
+                                    'temp_1_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     test_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -446,7 +446,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                                 feed_dict={inp: train_batch_x,
                                     labels_evaldistill: train_batch_y,
                                     #  keep_inp: 1.0, keep: 1.0,
-                                    'temp_1:0': 1.0, temp: 1.0})
+                                    'temp_1_1:0': 1.0, temp: 1.0})
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -463,7 +463,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         all_stats['student_stats'] = compute_class_statistics(sess,
                 'lenet-5_half/temp/div:0', inp, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
-                'lenet-5/temp/div:0', inp, data, 'temp_1:0', temp_value, stddev=True)
+                'lenet-5/temp/div:0', inp, data, 'temp_1_1:0', temp_value, stddev=True)
         np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats saved : stats/activation_stats_{}.npy'.format(f.run_name))
 
