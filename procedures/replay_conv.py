@@ -239,7 +239,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         fc3_placeholder = tf.placeholder(tf.float32, [None, 10], name='fc3_placeholder')
         fc2_placeholder = tf.placeholder(tf.float32, [None, 84], name='fc2_placeholder')
         fc1_placeholder = tf.placeholder(tf.float32, [None, 120], name='fc1_placeholder')
-        conv2_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 10*10*16], name='conv2_placeholder'), [-1, 10, 10, 6])
+        conv2_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 10*10*16], name='conv2_placeholder'), [-1, 10, 10, 16])
         conv1_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 28*28*6], name='conv1_placeholder'), [-1, 28, 28, 6])
 
         input_placeholder = tf.placeholder(tf.float32, [None, 32, 32, 1], name='input_placeholder')
