@@ -74,8 +74,8 @@ def compute_class_statistics(sess, act_tensor, flat_shape, inp, data, temp, temp
         #  batch_size = len(batch_x)
         #  batch_out = sess.run('labels_sftmx/Reshape_1:0',
         #  print(np.shape(batch_x))
-        #  print(tf.get_default_graph().get_tensor_by_name(act_tensor+':0'))
-        batch_out = sess.run(tf.reshape(act_tensor, [-1, flat_shape]),
+        ten = tf.get_default_graph().get_tensor_by_name(act_tensor+':0')
+        batch_out = sess.run(tf.reshape(ten, [-1, flat_shape]),
                 feed_dict={inp: batch_x,
                     #  keep_inp: 1.0, keep: 1.0,
                     temp: temp_val})
