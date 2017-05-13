@@ -166,12 +166,8 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         elif METHOD == 'manysample':
             # TODO CONV: fix these shapes probs
             # should be done.
-            conv1_latent = np.reshape(
-                    sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6, is_conv=True),
-                    [-1, 28, 28, 6])
-            conv2_latent = np.reshape(
-                    sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16, is_conv=True),
-                    [-1, 10, 10, 16])
+            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6, is_conv=True)
+            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16, is_conv=True)
             fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 120)
             fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 84)
             fc3_latent = sample_from_stats(fc3_stats, clas, num_examples_per_median, 10)
@@ -255,8 +251,8 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         fc3_placeholder = tf.placeholder(tf.float32, [None, 10], name='fc3_placeholder')
         fc2_placeholder = tf.placeholder(tf.float32, [None, 84], name='fc2_placeholder')
         fc1_placeholder = tf.placeholder(tf.float32, [None, 120], name='fc1_placeholder')
-        conv2_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 10*10*16], name='conv2_placeholder'), [-1, 10, 10, 16])
-        conv1_placeholder = tf.reshape(tf.placeholder(tf.float32, [None, 28*28*6], name='conv1_placeholder'), [-1, 28, 28, 6])
+        conv2_placeholder = tf.placeholder(tf.float32, [None, 10*10*16], name='conv2_placeholder')
+        conv1_placeholder = tf.placeholder(tf.float32, [None, 28*28*6], name='conv1_placeholder')
 
         input_placeholder = tf.placeholder(tf.float32, [None, 32, 32, 1], name='input_placeholder')
         input_var = tf.Variable(tf.zeros([f.train_batch_size, 32, 32, 1]), name='recreated_imgs')
@@ -284,8 +280,8 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
             else:
                 #  sft = tf.nn.sigmoid(latent_placeholder)
                 #  sft = tf.nn.softmax(latent_placeholder)
-                conv1_sft = tf.nn.relu(conv1_placeholder)
-                conv2_sft = tf.nn.relu(conv2_placeholder)
+                conv1_sft = tf.nn.relu(tf.reshape(conv1_placeholder, [-1, 28, 28, 6]))
+                conv2_sft = tf.nn.relu(tf.reshape(conv2_placeholder, [-1, 10, 10, 16]))
                 fc1_sft = tf.nn.relu(fc1_placeholder)
                 fc2_sft = tf.nn.relu(fc2_placeholder)
                 fc3_sft = tf.nn.relu(fc3_placeholder)
