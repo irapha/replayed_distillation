@@ -32,7 +32,9 @@ MODEL_CHECKPOINT = 'summaries/train_lenet_realinit/checkpoint/lenet-8000'
 # - [done] fix dropout neurons at every reconstruction step. i think it will
 #          better use the specific neuron pathways backwards.
 # - spectral optimization objective
-# - make it work with convolutions
+# - [done] make it work with convolutions
+# - do normal distill with lenet
+# - maybe do top layer distill with lenet. probably doesnt matter tho
 # - see how well it does with just initializing student using matrix factorization techniques
 
 # CURRENTLY WORKING IN TODO CONV.
@@ -353,7 +355,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         print('computing stats 5')
         fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', 10, inp, data, 'temp_1:0', temp_value)
         print('all stats computed')
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][0]
         if load_procedure == 'load':
             print('loading optimizing data')
             data_optimized = np.load('stats/data_optimized_{}.npy'.format(f.run_name))[()]
@@ -426,9 +428,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # post training, save statistics
         all_stats = {}
         all_stats['student_stats'] = compute_class_statistics(sess,
-                'lenet-5_half/temp/div:0', inp, data, 'temp:0', temp_value, stddev=True)
+                'lenet-5_half/temp/div:0', 10, inp, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
-                'lenet-5/temp/div:0', inp, data, 'temp_1:0', temp_value, stddev=True)
+                'lenet-5/temp/div:0', 10, inp, data, 'temp_1:0', temp_value, stddev=True)
         np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats saved : stats/activation_stats_{}.npy'.format(f.run_name))
 
