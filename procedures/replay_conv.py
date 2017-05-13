@@ -166,8 +166,12 @@ def sample_images(sess, stats, clas, batch_size, input_placeholder,
         elif METHOD == 'manysample':
             # TODO CONV: fix these shapes probs
             # should be done.
-            conv1_latent = sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6, is_conv=True)
-            conv2_latent = sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16, is_conv=True)
+            conv1_latent = np.reshape(
+                    sample_from_stats(conv1_stats, clas, num_examples_per_median, 28*28*6, is_conv=True),
+                    [-1, 28, 28, 6])
+            conv2_latent = np.reshape(
+                    sample_from_stats(conv2_stats, clas, num_examples_per_median, 10*10*16, is_conv=True),
+                    [-1, 10, 10, 16])
             fc1_latent = sample_from_stats(fc1_stats, clas, num_examples_per_median, 120)
             fc2_latent = sample_from_stats(fc2_stats, clas, num_examples_per_median, 84)
             fc3_latent = sample_from_stats(fc3_stats, clas, num_examples_per_median, 10)
