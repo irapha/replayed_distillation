@@ -35,7 +35,7 @@ if __name__ == '__main__':
     tf.set_random_seed(FLAGS.rng_seed)
 
     # initialize session
-    sess = tf.Session(u.get_sess_config(use_gpu=True))
+    sess = tf.Session(config=u.get_sess_config(use_gpu=True))
 
     # create graph
     print('creating graph')

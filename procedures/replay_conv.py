@@ -428,9 +428,9 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         # post training, save statistics
         all_stats = {}
         all_stats['student_stats'] = compute_class_statistics(sess,
-                'lenet-5_half/temp/div:0', 10, inp, data, 'temp:0', temp_value, stddev=True)
+                'lenet-5_half/temp/div', 10, inp, data, 'temp:0', temp_value, stddev=True)
         all_stats['teacher_stats'] = compute_class_statistics(sess,
-                'lenet-5/temp/div:0', 10, inp, data, 'temp_1:0', temp_value, stddev=True)
+                'lenet-5/temp/div', 10, inp, data, 'temp_1:0', temp_value, stddev=True)
         np.save('stats/activation_stats_{}.npy'.format(f.run_name), all_stats)
         print('stats saved : stats/activation_stats_{}.npy'.format(f.run_name))
 
