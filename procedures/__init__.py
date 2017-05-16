@@ -9,6 +9,9 @@ def get(procedure):
     elif procedure == 'distill':
         from . import distill
         return distill
+    elif procedure == 'distill_conv':
+        from . import distill_conv
+        return distill_conv
     elif procedure == 'replay':
         from . import replay
         return replay
