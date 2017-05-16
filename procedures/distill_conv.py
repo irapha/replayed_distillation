@@ -116,4 +116,4 @@ def create_placeholders(sess, input_size, output_size, _):
     with tf.variable_scope('stoppp'):
         labels = tf.stop_gradient(labels)
 
-    return inp, labels, keep_inp, keep, labels_temp
+    return inp, labels, labels_temp

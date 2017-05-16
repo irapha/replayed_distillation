@@ -46,7 +46,7 @@ if __name__ == '__main__':
     if FLAGS.procedure == 'train_conv':
         labels_temp = tf.placeholder(tf.float32, name='labels_temp')
 
-    if FLAGS.procedure == 'train':
+    if FLAGS.procedure in ['distill_conv', 'train']:
         inp, labels, labels_temp = p.get(
                 FLAGS.procedure).create_placeholders(sess, input_size, output_size, (keep_inp, keep, temp, labels_temp))
     elif FLAGS.procedure == 'train_conv':
