@@ -52,7 +52,7 @@ if __name__ == '__main__':
     elif FLAGS.procedure == 'train_conv':
         inp, labels, keep_inp, keep, labels_temp = p.get(
                 FLAGS.procedure).create_placeholders(sess, input_size, output_size, (temp, labels_temp))
-    elif FLAGS.procedures == 'distill_conv':
+    elif FLAGS.procedure == 'distill_conv':
         inp, labels, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
     else:
         inp, labels, keep_inp, keep, labels_temp = p.get(FLAGS.procedure).create_placeholders(sess, input_size, output_size, None)
