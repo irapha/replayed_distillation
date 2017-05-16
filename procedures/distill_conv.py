@@ -60,7 +60,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
-            for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
+            for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size, size=32):
                 summary, _ = sess.run([summary_op_evaldistill, train_step],
                         feed_dict={inp: batch_x,
                             labels_evaldistill: batch_y,
@@ -72,7 +72,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                 if global_step % f.eval_interval == 0:
                     # eval test
                     summaries = []
-                    for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
+                    for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size, size=32):
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: test_batch_x,
                                     labels_evaldistill: test_batch_y,
@@ -83,7 +83,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
                     # eval train
                     summaries = []
-                    for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
+                    for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size, size=32):
                         summary = sess.run(summary_op_evaldistill,
                                 feed_dict={inp: train_batch_x,
                                     labels_evaldistill: train_batch_y,
