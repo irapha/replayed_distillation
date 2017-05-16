@@ -100,6 +100,9 @@ if __name__ == '__main__':
     elif FLAGS.procedure == 'replay_conv':
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
+    elif FLAGS.procedure == 'distill_conv':
+        p.get(FLAGS.procedure).run(sess, FLAGS, data,
+                (inp, labels, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
     else:
         p.get(FLAGS.procedure).run(sess, FLAGS, data,
                 (inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill), train_step, summary_op, summary_op_evaldistill)
