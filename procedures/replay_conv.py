@@ -355,7 +355,7 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         print('computing stats 5')
         fc3_stats = compute_class_statistics(sess, 'lenet-5/temp/div', 10, inp, data, 'temp_1:0', temp_value)
         print('all stats computed')
-        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][0]
+        load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
             print('loading optimizing data')
             data_optimized = np.load('stats/data_optimized_{}.npy'.format(f.run_name))[()]
