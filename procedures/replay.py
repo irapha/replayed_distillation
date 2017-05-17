@@ -288,11 +288,11 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
         temp_value = 8.0
         # TODO: midlayer
         print('computing stats 1')
-        act_stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        act_stats = compute_class_statistics(sess, '784-1200-1200-10/temp/div:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
         print('computing stats 2')
-        fc2_stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        fc2_stats = compute_class_statistics(sess, '784-1200-1200-10/fc2/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
         print('computing stats 3')
-        fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1_1:0', temp_value)
+        fc1_stats = compute_class_statistics(sess, '784-1200-1200-10/fc1/add:0', inp, keep_inp, keep, data, 'temp_1:0', temp_value)
         print('all stats computed')
         load_procedure = ['load', 'reconstruct_before', 'reconstruct_fly'][1]
         if load_procedure == 'load':
