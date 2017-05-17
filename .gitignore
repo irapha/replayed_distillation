@@ -4,6 +4,7 @@ summaries/
 summaries_old/
 MNIST_data/
 stats/
+stats_old/
 
 # Created by https://www.gitignore.io/api/python
 

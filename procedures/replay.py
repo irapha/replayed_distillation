@@ -180,9 +180,9 @@ def unblockshaped(arr, h, w):
                .swapaxes(1,2)
                .reshape(h, w))
 
-def reshape_to_row(arr):
-    grid = np.array([np.reshape(img, (28, 28)) for img in arr])
-    return unblockshaped(grid, int(28), int(28 * grid.shape[0]))
+def reshape_to_row(arr, wid_hei=28):
+    grid = np.array([np.reshape(img, (wid_hei, wid_hei)) for img in arr])
+    return unblockshaped(grid, int(wid_hei), int(wid_hei * grid.shape[0]))
 
 def reshape_to_grid(arr):
     grid = np.array([np.reshape(img, (28, 28)) for img in arr])

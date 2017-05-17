@@ -2,7 +2,7 @@ import numpy as np
 
 np.set_printoptions(linewidth=200)
 
-all_stats = np.load('activation_stats_centralnorm_relumse.npy')[()]
+all_stats = np.load('stats/activation_stats_replay_drop_rescaleonly.npy')[()]
 
 s_mean, s_sdev = all_stats['student_stats']
 t_mean, t_sdev = all_stats['teacher_stats']

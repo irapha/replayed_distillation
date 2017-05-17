@@ -1,10 +1,13 @@
+import sys
 import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 
-all_stats = np.load('stats/activation_stats_hinton800_replayed_center0p15_relumse_covsavevar_testalllayers_weighting_1kiter_lr0p07_100t64experclas.npy')[()]
+# old one: used in poster.
+# all_stats = np.load('stats/activation_stats_hinton800_replayed_center0p15_relumse_covsavevar_testalllayers_weighting_1kiter_lr0p07_100t64experclas.npy')[()]
+all_stats = np.load('stats/{}'.format(sys.argv[1]))[()]
 
 s_mean, _, s_sdev = all_stats['student_stats']
 t_mean, _, t_sdev = all_stats['teacher_stats']
