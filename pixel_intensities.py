@@ -26,7 +26,7 @@ for clas in range(10):
     for batch_x, _ in recns[clas]:
         clas_imgs.extend(batch_x)
     re_means.append(np.squeeze(np.mean(clas_imgs, axis=0)))
-cv2.imwrite('re_means.png', 255*reshape_to_row(np.array(re_means), 32))
+cv2.imwrite('re_means.png', 255*reshape_to_row(np.array(re_means), 28))#, 32))
 # cv2.imshow('re_means.png', reshape_to_row(np.array(re_means)))
 
 re_random = []
@@ -35,7 +35,7 @@ for clas in range(10):
     for batch_x, _ in recns[clas]:
         clas_imgs.extend(batch_x)
     re_random.append(choice(clas_imgs))
-cv2.imwrite('re_random.png', 255*reshape_to_row(np.array(re_random), 32))
+cv2.imwrite('re_random.png', 255*reshape_to_row(np.array(re_random), 28))#32))
 # cv2.imshow('re_random.png', reshape_to_row(np.array(re_random)))
 
 # cv2.waitKey(0)
