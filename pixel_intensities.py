@@ -14,10 +14,13 @@ recns = np.load('stats/{}'.format(sys.argv[1]))[()]
 #  recns_notmedian = np.load('data_optimized_notmedian.npy')[()]
 
 og_means = []
+og_random = []
 for clas in range(10):
     idx = np.where(np.where(mnist.og.train.labels == 1)[1] == clas)[0]
     og_means.append(np.mean(mnist.og.train.images[idx], axis=0))
+    og_random.append(choice(mnist.og.train.images[idx]))
 # cv2.imwrite('og_means.png', 255* reshape_to_row(np.array(og_means)))
+cv2.imwrite('og_random.png', 255* reshape_to_row(np.array(og_random)))
 # cv2.imshow('og_means.png', reshape_to_row(np.array(og_means)))
 
 re_means = []
