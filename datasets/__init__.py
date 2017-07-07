@@ -14,9 +14,3 @@ def get(dataset_name):
         return m.MNISTIterator()
     else:
         raise NotImplemented('This dataset not implemented')
-
-def get_io_size(dataset_name):
-    if dataset_name in ['mnist', 'mnist_bottleneck']:
-        return 784, 10
-    else:
-        raise NotImplemented('This dataset not implemented')

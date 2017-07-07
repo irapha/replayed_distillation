@@ -8,38 +8,11 @@ import tensorflow as tf
 import utils as u
 import models as m
 
-from utils import ensure_dir_exists
+from utils import ensure_dir_exists, merge_summary_list
 
 MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
 MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
 
-def merge_summary_list(summary_list, do_print=False):
-    summary_dict = {}
-
-    for summary in summary_list:
-        summary_proto = tf.Summary()
-        summary_proto.ParseFromString(summary)
-
-        for val in summary_proto.value:
-            if val.tag not in summary_dict:
-                summary_dict[val.tag] = []
-            summary_dict[val.tag].append(val.simple_value)
-
-    # get mean of each tag
-    for k, v in summary_dict.items():
-        summary_dict[k] = np.mean(v)
-
-    if do_print:
-        print(summary_dict)
-
-    # create final Summary with mean of values
-    final_summary = tf.Summary()
-    final_summary.ParseFromString(summary_list[0])
-
-    for i, val in enumerate(final_summary.value):
-        final_summary.value[i].simple_value = summary_dict[val.tag]
-
-    return final_summary
 
 def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
     inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders

@@ -16,6 +16,10 @@ class MNISTIterator(object):
     def __init__(self):
         self.og = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
+    @property
+    def io_size(self):
+        return 784, 10
+
     def train_epoch_in_batches(self, batch_size):
         train_list = list(range(len(self.og.train.images)))
         np.random.shuffle(train_list)
