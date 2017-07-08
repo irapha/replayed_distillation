@@ -11,8 +11,8 @@ import utils as u
 
 def run(sess, f, data):
     # create graph
-    input_size, output_size = data.io_size
-    inputs, outputs, feed_dicts = m.get(f.model).create_model(input_size, output_size)
+    input_size, output_size = data.io_shape
+    inputs, outputs, _, feed_dicts = m.get(f.model).create_model(input_size, output_size)
 
     with tf.variable_scope('train_procedure_ops'):
         labels = tf.placeholder(tf.float32, [None, output_size], name='labels')
@@ -41,31 +41,24 @@ def run(sess, f, data):
                 summary, _ = sess.run([summary_op, train_step],
                         feed_dict={**feed_dicts['train'],
                                    inputs: batch_x, labels: batch_y})
-                            #  #  keep_inp: 0.8, keep: 0.5})
-                            #  keep_inp: 1.0, keep: 0.5,
-                            #  temp: 1.0, labels_temp: 1.0})
-
                 trainbatch_writer.add_summary(summary, global_step)
 
                 if global_step % f.eval_interval == 0:
-                    # eval test
+                    # eval test set
                     summaries = []
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={**feed_dicts['eval'],
                                            inputs: test_batch_x, labels: test_batch_y})
-                                    #  keep_inp: 1.0, keep: 1.0,
-                                    #  temp: 1.0, labels_temp: 1.0})
                         summaries.append(summary)
                     test_writer.add_summary(u.merge_summary_list(summaries, True), global_step)
 
-                    # eval train
+                    # eval train set
                     summaries = []
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
                         summary = sess.run(summary_op,
                                 feed_dict={**feed_dicts['eval'],
                                            inputs: train_batch_x, labels: train_batch_y})
-                                    #  keep_inp: 1.0, keep: 1.0, temp: 1.0})
                         summaries.append(summary)
                     train_writer.add_summary(u.merge_summary_list(summaries, True), global_step)
 

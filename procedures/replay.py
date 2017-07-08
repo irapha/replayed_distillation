@@ -16,8 +16,8 @@ import utils as u
 
 from utils import ensure_dir_exists, merge_summary_list
 
-MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
-MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
+#  MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
+#  MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
 
 # TODOS:
 # - [done] see how relu + l2 reconstruction look like

@@ -6,8 +6,8 @@ def get(procedure):
     elif procedure == 'distill':
         from . import distill
         return distill
-    elif procedure == 'replay':
-        from . import replay
-        return replay
+    elif procedure == 'compute_stats':
+        from . import compute_stats
+        return compute_stats
     else:
         raise NotImplemented('This procedure not implemented yet')

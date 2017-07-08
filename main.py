@@ -27,6 +27,13 @@ flags.DEFINE_integer('test_batch_size', 64, 'number of examples to be used for t
 flags.DEFINE_integer('eval_interval', 100, 'Number of training steps between test set evaluations')
 flags.DEFINE_integer('checkpoint_interval', 1000, 'Number of steps between checkpoints')
 
+# the following are only used when loading a pre-trained model
+# (e.g.: compute_stats, optimize, and distill)
+flags.DEFINE_string('model_meta', '', 'The meta graphdef file for the saved model to be loaded.')
+# e.g.: summaries/test_train_works/checkpoint/hinton1200-8000.meta
+flags.DEFINE_string('model_checkpoint', '', 'The checkpoint to restore the graph from.')
+# e.g.: summaries/test_train_works/checkpoint/hinton1200-8000
+
 
 if __name__ == '__main__':
     # initial bookkeeping

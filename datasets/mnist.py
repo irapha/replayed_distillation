@@ -17,7 +17,7 @@ class MNISTIterator(object):
         self.og = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
     @property
-    def io_size(self):
+    def io_shape(self):
         return 784, 10
 
     def train_epoch_in_batches(self, batch_size):
