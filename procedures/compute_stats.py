@@ -6,8 +6,8 @@ that teacher.
 import numpy as np
 import os
 import tensorflow as tf
-
 import models as m
+import utils as u
 
 
 def run(sess, f, data):
@@ -22,12 +22,14 @@ def run(sess, f, data):
             stats = compute_class_statistics(sess, layer_activation, inputs, data, feed_dicts)
             all_stats.append(stats)
 
-    summary_dir = os.path.join(f.summary_folder, f.run_name)
-    stats_save_file = os.path.join(summary_dir, 'stats/activation_stats_{}.npy'.format(f.run_name))
-    np.save(stats_save_file, all_stats)
+    stats_dir = os.path.join(f.summary_folder, f.run_name, 'stats')
+    u.ensure_dir_exists(stats_dir)
+    stats_file = os.path.join(stats_dir, 'activation_stats_{}.npy'.format(f.run_name))
+    np.save(stats_file, all_stats)
+    print('stats saved in {}'.format(stats_file))
 
 def compute_class_statistics(sess, tensor, inputs, data, feed_dicts):
-    # compute activations for all elements in train set, organized by class
+    # compute activations for all examples in train set, organized by class
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
         batch_out = sess.run(tensor,
@@ -39,7 +41,7 @@ def compute_class_statistics(sess, tensor, inputs, data, feed_dicts):
                 all_activations[clas] = []
             all_activations[clas].append(act)
 
-    # consolidate them:
+    # consolidate them each of the class' activations
     means = {}
     cov = {}
     stdev = {}

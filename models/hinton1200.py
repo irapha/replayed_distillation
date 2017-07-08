@@ -24,7 +24,7 @@ def create_model(input_size, output_size):
             z = tf.nn.relu(h, name='relu')
             z_drop = tf.nn.dropout(z, keep_prob=keep_prob)
         layer_activations.append((h, 1200))
-        tf.add_to_collection('fc1', inputs)
+        tf.add_to_collection('fc1', h)
 
         with tf.variable_scope('fc2'):
             w = tf.Variable(tf.truncated_normal([1200, 1200]), name='w')
@@ -33,7 +33,7 @@ def create_model(input_size, output_size):
             z = tf.nn.relu(h, name='relu')
             z_drop = tf.nn.dropout(z, keep_prob=keep_prob)
         layer_activations.append((h, 1200))
-        tf.add_to_collection('fc2', inputs)
+        tf.add_to_collection('fc2', h)
 
         with tf.variable_scope('fc3'):
             w = tf.Variable(tf.truncated_normal([1200, output_size]), name='w')
