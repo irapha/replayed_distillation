@@ -46,6 +46,7 @@ def compute_class_statistics(sess, tensor, inputs, data, feed_dicts):
     cov = {}
     stdev = {}
 
+    # TODO(sfenu3): compute and save spectral statistics
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
         cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))

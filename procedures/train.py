@@ -12,13 +12,13 @@ import utils as u
 def run(sess, f, data):
     # create graph
     input_size, output_size = data.io_shape
-    inputs, outputs, _, feed_dicts = m.get(f.model).create_model(input_size, output_size)
+    inputs = tf.placeholder(tf.float32, [None, input_size], name='inputs')
+    outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
-    with tf.variable_scope('train_procedure_ops'):
-        labels = tf.placeholder(tf.float32, [None, output_size], name='labels')
-        loss, train_step = u.create_train_ops(outputs, labels)
-        accuracy = u.create_eval_ops(outputs, labels)
-        summary_op = u.create_summary_ops(loss, accuracy)
+    labels = tf.placeholder(tf.float32, [None, output_size], name='labels')
+    loss, train_step = u.create_train_ops(outputs, labels)
+    accuracy = u.create_eval_ops(outputs, labels)
+    summary_op = u.create_summary_ops(loss, accuracy)
 
     # only initialize non-initialized vars:
     u.init_uninitted_vars(sess)
@@ -68,5 +68,6 @@ def run(sess, f, data):
                     checkpoint_dir = os.path.join(summary_dir, 'checkpoint/')
                     u.ensure_dir_exists(checkpoint_dir)
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
-                    saver.save(sess, checkpoint_file, global_step=global_step)
+                    saved_file = saver.save(sess, checkpoint_file, global_step=global_step)
 
+    print('saved model at {}'.format(saved_file))

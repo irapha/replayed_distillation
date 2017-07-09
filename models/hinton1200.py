@@ -4,12 +4,10 @@ import tensorflow as tf
 import numpy as np
 
 
-def create_model(input_size, output_size):
+def create_model(inputs, output_size):
     layer_activations = []
 
     with tf.variable_scope('784-1200-1200-10'):
-        inputs = tf.placeholder(tf.float32, [None, input_size], name='inputs')
-
         keep_prob_input = tf.placeholder(tf.float32, name='keep_prob_input')
         keep_prob = tf.placeholder(tf.float32, name='keep_prob')
         temperature = tf.placeholder(tf.float32, name='temperature')
@@ -56,7 +54,7 @@ def create_model(input_size, output_size):
 
     feed_dicts = create_feed_dicts(keep_prob_input, keep_prob, temperature)
 
-    return inputs, h_soft, layer_activations, feed_dicts
+    return h_soft, layer_activations, feed_dicts
 
 def create_feed_dicts(keep_prob_input, keep_prob, temperature):
     feed_dicts = {key: {} for key in ['train', 'eval', 'distill']}
@@ -98,31 +96,29 @@ def load_model(sess, model_meta, model_checkpoint, output_size):
 
     return inputs, outputs, layer_activations, feed_dicts
 
-def create_constant_model(sess, inp):
-    # this should both load and create a constant model, and its feed dicts, which will have to be merged and shit later on
+def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, output_size):
+    new_saver = tf.train.import_meta_graph(model_meta)
+    new_saver.restore(sess, model_checkpoint)
 
     with tf.variable_scope('784-1200-1200-10_const'):
         with tf.variable_scope('inp_drop'):
-            # mere rescaling
-            inp = inp * 0.8 # are we using 0.8 anywhere in training?!?!?! (WE were, idk if we stil are in latest exps)
+            inp = inp * 0.8 # dropout's rescale of the activations
 
         with tf.variable_scope('fc1'):
-            w = tf.constant(sess.run('784-1200-1200-10/fc1/w:0'), name='w')
-            b = tf.constant(sess.run('784-1200-1200-10/fc1/b:0'), name='b')
+            w = tf.constant(sess.run(tf.get_collection('fc1_w')[0]), name='w')
+            b = tf.constant(sess.run(tf.get_collection('fc1_b')[0]), name='b')
             z = tf.nn.relu(tf.matmul(inp, w) + b, name='relu')
-            # mere rescaling
-            z = z * 0.5
+            z = z * 0.5 # dropout's rescale of the activations
 
         with tf.variable_scope('fc2'):
-            w = tf.constant(sess.run('784-1200-1200-10/fc2/w:0'), name='w')
-            b = tf.constant(sess.run('784-1200-1200-10/fc2/b:0'), name='b')
+            w = tf.constant(sess.run(tf.get_collection('fc2_w')[0]), name='w')
+            b = tf.constant(sess.run(tf.get_collection('fc2_b')[0]), name='b')
             z = tf.nn.relu(tf.matmul(z, w) + b, name='relu')
-            z = z * 0.5
+            z = z * 0.5 # dropout's rescale of the activations
 
         with tf.variable_scope('fc3'):
-            w = tf.constant(sess.run('784-1200-1200-10/fc3/w:0'), name='w')
-            b = tf.constant(sess.run('784-1200-1200-10/fc3/b:0'), name='b')
+            w = tf.constant(sess.run(tf.get_collection('fc3_w')[0]), name='w')
+            b = tf.constant(sess.run(tf.get_collection('fc3_b')[0]), name='b')
             h = tf.matmul(z, w) + b
 
-    return h
-
+    return h, layer_activations, feed_dicts
