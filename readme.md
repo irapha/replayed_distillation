@@ -16,6 +16,7 @@ python main.py --run_name=test_train_works --dataset=summaries/test_train_works/
 
 
 TODO(rapha): implement fixed dropout filters again...
+also hinton800
 also convs
 also random scrips and viz scripts
 
