@@ -39,7 +39,7 @@ class all_layers:
             placeholder = tf.placeholder(tf.float32, [None, size],
                     name='{}_placeholder'.format(get_name(tensor)))
             self.layer_placeholders.append(placeholder)
-            self.layer_placeholders.append(size)
+            self.layer_sizes.append(size)
 
             recreate_loss += (1.0 / size) * tf.reduce_mean(
                     tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
