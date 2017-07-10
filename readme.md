@@ -1,5 +1,5 @@
 # train and save a model
-python main.py --run_name=test_train_works --dataset=mnist --model=hinton1200 --procedure=train
+python main.py --run_name=test_train_works --dataset=mnist --model=hinton1200 --procedure=train # note that if using lenet model, you should use mnist_conv (which has correct input size)
 
 # calculate and save statistics for that model
 python main.py --run_name=test_train_works --dataset=mnist --model=hinton1200 --procedure=compute_stats --model_meta=summaries/test_train_works/checkpoint/hinton1200-8000.meta --model_checkpoint=summaries/test_train_works/checkpoint/hinton1200-8000
@@ -16,7 +16,7 @@ python main.py --run_name=test_train_works --dataset=summaries/test_train_works/
 
 
 TODO(rapha): implement fixed dropout filters again...
-also convs
+also convs-> lenet.py constant model only. then test entire thing on all convs.
 also random scrips and viz scripts
 
 TODO(sfenu3): spectral optimization objectives
