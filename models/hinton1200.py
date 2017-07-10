@@ -21,7 +21,10 @@ def create_model(inputs, output_size):
             h = tf.matmul(inp_drop, w) + b
             z = tf.nn.relu(h, name='relu')
             z_drop = tf.nn.dropout(z, keep_prob=keep_prob)
+
         layer_activations.append((h, 1200))
+        tf.add_to_collection('fc1_w', w)
+        tf.add_to_collection('fc1_b', b)
         tf.add_to_collection('fc1', h)
 
         with tf.variable_scope('fc2'):
@@ -30,13 +33,19 @@ def create_model(inputs, output_size):
             h = tf.matmul(z_drop, w) + b
             z = tf.nn.relu(h, name='relu')
             z_drop = tf.nn.dropout(z, keep_prob=keep_prob)
+
         layer_activations.append((h, 1200))
+        tf.add_to_collection('fc2_w', w)
+        tf.add_to_collection('fc2_b', b)
         tf.add_to_collection('fc2', h)
 
         with tf.variable_scope('fc3'):
             w = tf.Variable(tf.truncated_normal([1200, output_size]), name='w')
             b = tf.Variable(tf.constant(0.1, shape=[output_size]), name='b')
             h = tf.matmul(z_drop, w) + b
+
+        tf.add_to_collection('fc3_w', w)
+        tf.add_to_collection('fc3_b', b)
 
         with tf.variable_scope('temp'):
             h_soft = tf.div(h, temperature)
@@ -99,26 +108,35 @@ def load_model(sess, model_meta, model_checkpoint, output_size):
 def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, output_size):
     new_saver = tf.train.import_meta_graph(model_meta)
     new_saver.restore(sess, model_checkpoint)
+    temp = tf.placeholder(tf.float32, name='temperature')
+
+    layer_activations = []
 
     with tf.variable_scope('784-1200-1200-10_const'):
         with tf.variable_scope('inp_drop'):
-            inp = inp * 0.8 # dropout's rescale of the activations
+            inputs = inputs * 0.8 # dropout's rescale of the activations
 
         with tf.variable_scope('fc1'):
             w = tf.constant(sess.run(tf.get_collection('fc1_w')[0]), name='w')
             b = tf.constant(sess.run(tf.get_collection('fc1_b')[0]), name='b')
-            z = tf.nn.relu(tf.matmul(inp, w) + b, name='relu')
+            h = tf.matmul(inputs, w) + b
+            z = tf.nn.relu(h, name='relu')
             z = z * 0.5 # dropout's rescale of the activations
+        layer_activations.append((h, 1200))
 
         with tf.variable_scope('fc2'):
             w = tf.constant(sess.run(tf.get_collection('fc2_w')[0]), name='w')
             b = tf.constant(sess.run(tf.get_collection('fc2_b')[0]), name='b')
             z = tf.nn.relu(tf.matmul(z, w) + b, name='relu')
             z = z * 0.5 # dropout's rescale of the activations
+        layer_activations.append((h, 1200))
 
         with tf.variable_scope('fc3'):
             w = tf.constant(sess.run(tf.get_collection('fc3_w')[0]), name='w')
             b = tf.constant(sess.run(tf.get_collection('fc3_b')[0]), name='b')
-            h = tf.matmul(z, w) + b
+            h = tf.div(tf.matmul(z, w) + b, temp)
+        layer_activations.append((h, output_size))
+
+    feed_dicts = {'distill': {temp: 8.0}}
 
     return h, layer_activations, feed_dicts

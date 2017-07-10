@@ -9,10 +9,10 @@ import tensorflow as tf
 import models as m
 import utils as u
 
-from . import optimization_objectives as o
+from . import _optimization_objectives as o
 
 
-def run(sess, FLAGS, data):
+def run(sess, f, data):
     input_size, output_size = data.io_shape
     input_placeholder = tf.placeholder(tf.float32, [None, input_size], name='input_placeholder')
     input_var = tf.Variable(tf.zeros([f.train_batch_size, input_size]), name='recreated_imgs')
@@ -50,6 +50,7 @@ def run(sess, FLAGS, data):
             # the data is saved as a list of batches, each with batch_size = f.train_batch_size
             # each batch is saved as a tuple of (np.array of images, np.array of latent outputs)
             for i in range(100):
+                print('batch {}/100'.format(i), end='\r')
                 # reinitialize graph
                 sess.run(reinit_op)
                 # reinitialize input tf.Variable to random noise
@@ -64,11 +65,11 @@ def run(sess, FLAGS, data):
                     _ = sess.run(opt_obj.recreate_op, feed_dict=optimize_feed_dict)
 
                 optimized_inputs = sess.run(input_var)
-                optimized outputs = [sess.run(outputs)]
+                optimized_outputs = [sess.run(outputs, feed_dict=feed_dicts['distill'])]
                 data_optimized[clas].append((optimized_inputs, optimized_outputs))
 
     data_dir = os.path.join(f.summary_folder, f.run_name, 'data')
     u.ensure_dir_exists(data_dir)
-    data_file = os.path.join(data_dir, 'data_optimized_{}.npy'.format(f.run_name))
+    data_file = os.path.join(data_dir, 'data_optimized_{}_{}.npy'.format(f.optimization_objective, f.run_name))
     np.save(data_file, data_optimized)
     print('data saved in {}'.format(data_file))

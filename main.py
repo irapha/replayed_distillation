@@ -36,7 +36,6 @@ flags.DEFINE_string('model_checkpoint', '', 'The checkpoint to restore the graph
 
 # the following is only used for when optimizing a new dataset
 flags.DEFINE_string('optimization_objective', '', 'One of top_layer, all_layers, spectral_all_layers, spectral_layer_pairs')
-flags.DEFINE_string('dataset_destination_name', '', 'The name of the dataset file to be saved.')
 
 
 if __name__ == '__main__':

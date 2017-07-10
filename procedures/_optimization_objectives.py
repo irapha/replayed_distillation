@@ -1,3 +1,6 @@
+import tensorflow as tf
+import numpy as np
+
 
 def get(optimization_objective):
     if optimization_objective == 'top_layer':
@@ -15,8 +18,10 @@ class top_layer:
     def __init__(self, layer_activations):
         tensor, size = layer_activations[-1]
         self.top_layer_size = size
-        self.top_layer_placeholder = tf.placeholder(tf.float32, [None, size], name='{}_placeholder'.format(tensor))
-        recreate_loss = tf.reduce_mean(tf.pow(tf.nn.relu(self.top_layer_placeholder) - tf.nn.relu(tensor), 2))
+        self.top_layer_placeholder = tf.placeholder(tf.float32, [None, size],
+                name='{}_placeholder'.format(get_name(tensor)))
+        recreate_loss = tf.reduce_mean(
+                tf.pow(tf.nn.relu(self.top_layer_placeholder) - tf.nn.relu(tensor), 2))
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dict={}):
@@ -31,11 +36,13 @@ class all_layers:
         self.layer_sizes = []
         recreate_loss = 0.0
         for tensor, size in layer_activations:
-            placeholder = tf.placeholder(tf.float32, [None, size], name='{}_placeholder'.format(tensor))
+            placeholder = tf.placeholder(tf.float32, [None, size],
+                    name='{}_placeholder'.format(get_name(tensor)))
             self.layer_placeholders.append(placeholder)
             self.layer_placeholders.append(size)
 
-            recreate_loss += (1.0 / size) * tf.reduce_mean(tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
+            recreate_loss += (1.0 / size) * tf.reduce_mean(
+                    tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dict={}):
@@ -61,3 +68,6 @@ def sample_from_stats(stats, clas, batch_size, out_size):
     gauss = np.random.normal(size=(batch_size, out_size))
     pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
     return pre_sftmx
+
+def get_name(tensor):
+    return tensor.name.split(':')[0]
