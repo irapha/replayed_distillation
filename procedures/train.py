@@ -16,9 +16,9 @@ def run(sess, f, data):
     outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
     labels = tf.placeholder(tf.float32, [None, output_size], name='labels')
-    loss, train_step = u.create_train_ops(outputs, labels)
-    accuracy = u.create_eval_ops(outputs, labels)
-    summary_op = u.create_summary_ops(loss, accuracy)
+    loss, train_step = create_train_ops(outputs, labels)
+    accuracy = create_eval_ops(outputs, labels)
+    summary_op = create_summary_ops(loss, accuracy)
 
     # only initialize non-initialized vars:
     u.init_uninitted_vars(sess)
@@ -27,7 +27,7 @@ def run(sess, f, data):
 
     saver = tf.train.Saver(tf.global_variables())
 
-    summary_dir = os.path.join(f.summary_folder, f.run_name)
+    summary_dir = os.path.join(f.summary_folder, f.run_name, 'train')
     train_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
     trainbatch_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train_batch'), sess.graph)
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
@@ -71,3 +71,25 @@ def run(sess, f, data):
                     saved_file = saver.save(sess, checkpoint_file, global_step=global_step)
 
     print('saved model at {}'.format(saved_file))
+
+def create_train_ops(h, labels, scope='train_ops'):
+    with tf.variable_scope('xent_' + scope):
+        loss = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+
+    with tf.variable_scope('opt_' + scope):
+        train_step = tf.train.AdamOptimizer().minimize(loss)
+
+    return loss, train_step
+
+def create_eval_ops(y, y_, scope='train_ops'):
+    with tf.variable_scope('eval_' + scope):
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return accuracy
+
+def create_summary_ops(loss, accuracy):
+    loss_summary_op = tf.summary.scalar('loss', loss)
+    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
+    return tf.summary.merge([loss_summary_op, accuracy_summary_op])
+

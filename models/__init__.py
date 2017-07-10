@@ -6,5 +6,11 @@ def get(model_name):
     elif model_name == 'hinton800':
         from . import hinton800 as d
         return d
+    elif model_name == 'lenet':
+        from . import lenet5 as d
+        return d
+    elif model_name == 'lenet_half':
+        from . import lenet5_half as d
+        return d
     else:
         raise NotImplemented('This model not implemented yet')

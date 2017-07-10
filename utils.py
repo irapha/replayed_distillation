@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 
 from subprocess import check_output
+from itertools import zip_longest
 
 
 def get_logger(f):
@@ -46,34 +47,6 @@ def save_log(log, summary_folder, run_name, log_file):
     ensure_dir_exists(dirname)
     with open(os.path.join(dirname, log_file), 'w') as f:
         f.write(json.dumps(log))
-
-#  def create_optional_params():
-    #  keep_prob_input = tf.placeholder(tf.float32, name='keep_prob_input')
-    #  keep_prob = tf.placeholder(tf.float32, name='keep_prob')
-    #  temp = tf.placeholder(tf.float32, name='temp')
-    #  labels_temp = tf.placeholder(tf.float32, name='labels_temp')
-    #  return keep_prob_input, keep_prob, temp, labels_temp
-
-def create_train_ops(h, labels, scope='train_ops'):
-    with tf.variable_scope('xent_' + scope):
-        loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
-
-    with tf.variable_scope('opt_' + scope):
-        train_step = tf.train.AdamOptimizer().minimize(loss)
-
-    return loss, train_step
-
-def create_eval_ops(y, y_, scope='train_ops'):
-    with tf.variable_scope('eval_' + scope):
-        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    return accuracy
-
-def create_summary_ops(loss, accuracy):
-    loss_summary_op = tf.summary.scalar('loss', loss)
-    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
-    return tf.summary.merge([loss_summary_op, accuracy_summary_op])
 
 def ensure_dir_exists(dir_name):
     if not os.path.exists(dir_name):
@@ -124,3 +97,11 @@ def merge_summary_list(summary_list, do_print=False):
         final_summary.value[i].simple_value = summary_dict[val.tag]
 
     return final_summary
+
+def grouper(iterable, batch_size, fill_value=None):
+    """ Helper method for returning batches of size batch_size of a dataset.
+        grouper('ABCDEF', 3) -> 'ABC', 'DEF'
+    """
+    args = [iter(iterable)] * batch_size
+    return zip_longest(*args, fillvalue=fill_value)
+
