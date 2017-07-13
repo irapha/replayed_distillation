@@ -15,9 +15,20 @@ python main.py --run_name=test_train_works --dataset=summaries/test_train_works/
 
 
 
-TODO(rapha): implement fixed dropout filters again...
-also convs-> lenet.py constant model only. then test entire thing on all convs.
-also random scrips and viz scripts
+TODO(rapha):
+- implement fixed dropout filters again...
+- random scrips and viz scripts
 
 TODO(sfenu3): spectral optimization objectives
 (search for "TODO(sfenu3"))
+
+
+for conv model:
+
+python main.py --run_name=test_train_works --dataset=mnist_conv --model=lenet --procedure=train
+
+python main.py --run_name=test_train_works --dataset=mnist_conv --model=lenet --procedure=compute_stats --model_meta=summaries/test_train_works/train/checkpoint/lenet-8000.meta --model_checkpoint=summaries/test_train_works/train/checkpoint/lenet-8000
+
+python main.py --run_name=test_train_works --dataset=mnist_conv --model=lenet --procedure=optimize_dataset --model_meta=summaries/test_train_works/train/checkpoint/lenet-8000.meta --model_checkpoint=summaries/test_train_works/train/checkpoint/lenet-8000 --optimization_objective=top_layer # or all_layers, spectral_all_layers, spectral_layer_pairs
+
+python main.py --run_name=test_train_works --dataset=summaries/test_train_works/data/data_optimized_top_layer_test_train_works.npy --model=lenet --procedure=distill --model_meta=summaries/test_train_works/train/checkpoint/lenet-8000.meta --model_checkpoint=summaries/test_train_works/train/checkpoint/lenet-8000 --eval_dataset=mnist_conv --student_model=lenet_half --epochs=30

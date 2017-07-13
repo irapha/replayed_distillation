@@ -63,11 +63,16 @@ class spectral_layer_pairs:
 def sample_from_stats(stats, clas, batch_size, out_size):
     # TODO(sfenu3): if you modify what stats are being saved in compute_stats
     # procedure, modify the line below too.
-    means, cov, _ = stats
+    means, cov, stddev, shape = stats
     out_size = means[list(means.keys())[0]].shape[0]
     gauss = np.random.normal(size=(batch_size, out_size))
-    pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
-    return pre_sftmx
+    # Some tensors cant have cov matrices (like conv1 in lenet) because they
+    # are not positive definite. For those, we sample with element wise gaussian.
+    if cov is None:
+        pre_sftmx = means[clas] + np.multiply(gauss, stddev[clas])
+    else:
+        pre_sftmx = means[clas] + np.matmul(gauss, cov[clas])
+    return np.reshape(pre_sftmx, shape)
 
 def get_name(tensor):
     return tensor.name.split(':')[0]

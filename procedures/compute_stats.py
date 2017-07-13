@@ -17,9 +17,9 @@ def run(sess, f, data):
 
     with sess.as_default():
         all_stats = [] # in order, from bottom to topmost activation
-        for layer_activation, _ in layer_activations:
+        for layer_activation, size in layer_activations:
             print('computing stats for {}'.format(layer_activation))
-            stats = compute_class_statistics(sess, layer_activation, inputs, data, feed_dicts)
+            stats = compute_class_statistics(sess, layer_activation, size, inputs, data, feed_dicts)
             all_stats.append(stats)
 
     stats_dir = os.path.join(f.summary_folder, f.run_name, 'stats')
@@ -28,11 +28,11 @@ def run(sess, f, data):
     np.save(stats_file, all_stats)
     print('stats saved in {}'.format(stats_file))
 
-def compute_class_statistics(sess, tensor, inputs, data, feed_dicts):
+def compute_class_statistics(sess, tensor, size, inputs, data, feed_dicts):
     # compute activations for all examples in train set, organized by class
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
-        batch_out = sess.run(tensor,
+        batch_out = sess.run(tf.reshape(tensor, [-1, size]),
                 feed_dict={**feed_dicts['distill'], inputs: batch_x})
 
         for act, y in zip(batch_out, batch_y):
@@ -49,7 +49,19 @@ def compute_class_statistics(sess, tensor, inputs, data, feed_dicts):
     # TODO(sfenu3): compute and save spectral statistics
     for k, v in all_activations.items():
         means[k] = np.mean(v, axis=0)
-        cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
+        # TODO(rapha): figure out a way to use cov for convolutional models
+        # apparently conv1 is not positive definite. Our workaround is to
+        # just use (and sample from) stddev when its a problem.
+        if cov is not None:
+            try:
+                cov[k] = np.linalg.cholesky(np.cov(np.transpose(v)))
+            except np.linalg.linalg.LinAlgError:
+                cov = None
         stdev[k] = np.sqrt(np.var(v, axis=0))
 
-    return means, cov, stdev
+    # save the shape too. will be needed for later.
+    batch_x, _ = next(data.train_epoch_in_batches(50))
+    batch_out = sess.run(tensor, feed_dict={**feed_dicts['distill'], inputs: batch_x})
+    shape = (-1,) + np.shape(batch_out[0])[0:]
+
+    return means, cov, stdev, shape
