@@ -18,18 +18,9 @@ the meantime, you can feel free to read the
 [poster](raphagl.com/research/NeuralNetworkKnowledgeDistillationWithNoTrainingData.pdf)
 for this work, or contact me with any questions.
 
-### Authors
-[Raphael Gontijo Lopes](http://raphagl.com)
+- [Raphael Gontijo Lopes](http://raphagl.com)
 
-Stefano Fenu
-TODO(sfenu3): whore urself
-
-## Requirements
-This code requires that you have [tensorflow](https://tensorflow.org) 1.0 installed, along with `numpy`
-and `scikit-image 0.13.0` on python 3.6+.
-
-The visualization scripts (used to debug optimized/reconstructed datasets) also
-require `opencv 3.2.0` and `matplotlib`.
+- Stefano Fenu TODO(sfenu3): whore urself
 
 ## Overview
 Our method for knowledge distillation has a few different steps: training,
@@ -67,6 +58,13 @@ Every artifact created will be saved under `summaries/`, the default
 `--summary_folder`. This includes tf summaries, checkpoints, optimized
 datasets, log files with information about the experiment run, activation
 statistics, etc.
+
+## Requirements
+This code requires that you have [tensorflow](https://tensorflow.org) 1.0 installed, along with `numpy`
+and `scikit-image 0.13.0` on python 3.6+.
+
+The visualization scripts (used to debug optimized/reconstructed datasets) also
+require `opencv 3.2.0` and `matplotlib`.
 
 ## Usage
 ### Train and Save a Model
