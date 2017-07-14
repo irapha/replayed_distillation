@@ -1,11 +1,7 @@
 # Data-Free Knowledge Distillation For Deep Neural Networks
 
-<center>
-
 | [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
 |---|---|
-
-</center>
 
 ## Abstract
 Recent advances in model compression have provided procedures for compressing
