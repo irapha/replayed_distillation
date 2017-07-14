@@ -1,5 +1,9 @@
 # Data-Free Knowledge Distillation For Deep Neural Networks
 
+<center>
+| [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
+</center>
+
 ## Abstract
 Recent advances in model compression have provided procedures for compressing
 large neural networks to a fraction of their original size while retaining most
@@ -17,10 +21,6 @@ The paper is currently under review for NIPS 2017 and will be on arxiv soon! In
 the meantime, you can feel free to read the
 [poster](raphagl.com/research/NeuralNetworkKnowledgeDistillationWithNoTrainingData.pdf)
 for this work, or contact me with any questions.
-
-[Raphael Gontijo Lopes](http://raphagl.com)
-
-Stefano Fenu TODO(sfenu3): whore urself
 
 ## Overview
 Our method for knowledge distillation has a few different steps: training,
