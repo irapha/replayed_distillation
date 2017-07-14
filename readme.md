@@ -20,6 +20,7 @@ for this work, or contact me with any questions.
 
 ### Authors
 [Raphael Gontijo Lopes](http://raphagl.com)
+
 Stefano Fenu
 TODO(sfenu3): whore urself
 
@@ -30,11 +31,49 @@ and `scikit-image 0.13.0` on python 3.6+.
 The visualization scripts (used to debug optimized/reconstructed datasets) also
 require `opencv 3.2.0` and `matplotlib`.
 
+## Overview
+Our method for knowledge distillation has a few different steps: training,
+computing layer statistics on the dataset used for training, reconstructing (or
+optimizing) a new dataset based solely on the trained model and the activation
+statistics, and finally distilling the pre-trained "teacher" model into the
+smaller "student" network. Each of these steps constitute a "procedure", which
+are implemented in the `procedures/` module. Each procedure implements a `run`
+function, which does everything from loading models to training.
+
+When optimizing a dataset reconstruction, there's also the choice of different
+optimization objectives (top layer, all layers, spectral all layers, spectral
+layer pairs, all discussed in the paper). These are implemented in
+`procedures/_optimization_objectives.py`, and take care of creating the
+optimization and loss operations, as well as of sampling from the saved
+activation statistics and creating a `feed_dict` that loads all necessary
+placeholders.
+
+Every dataset goes under `datasets/`, and needs to implement the same interface
+as `datasets/mnist.py`. Namely, the dataset class needs to have an `io_size`
+property that specifies the input size and the label output size. It also needs
+two iterator methods: `train_epoch_in_batches` and `test_epoch_in_batches`.
+
+We provide four models in `models/`: two fully connected and two convolutional.
+The fully connected models are hinton-1200 and hinton-800, as described in the
+original [knowledge distillation paper](https://arxiv.org/abs/1503.02531). The
+convolutional models are [LeNet-5](https://arxiv.org/abs/1503.02531), and a
+modified version of it which has half the number of convolutional filters per
+layer. Each model implemented to be a teacher network needs to implement all
+three functions in the interface: `create_model`, `load_model`, and
+`load_and_freeze_model`. If a model is meant to be a student network, like
+`lenet_half` and `hinton800`, then it need only implement `create_model`.
+
+Every artifact created will be saved under `summaries/`, the default
+`--summary_folder`. This includes tf summaries, checkpoints, optimized
+datasets, log files with information about the experiment run, activation
+statistics, etc.
+
 ## Usage
-We provide two teacher model implementations and two student model implementations.
-
-
 ### Train and Save a Model
+First, we need to have the model trained on the original dataset. This step can
+be skipped if you already have a pre-trained model that you can easily load
+through the same interface as the ones in `models/`.
+
 The `procedure` flag specifies what to do with the model and dataset. In this
 case, train it from scratch.
 
@@ -93,8 +132,8 @@ python main.py --run_name=experiment --model=hinton1200 \
 
 ### Distilling a Model Using Vanilla Knowledge Distillation
 If you do have access to the original dataset, or you want to run Hinton's
-original Knowledge Distillation [paper], you can just specify that `dataset`
-flag.
+original Knowledge Distillation [paper](https://arxiv.org/abs/1503.02531), you
+can just specify that `dataset` flag.
 
 ```bash
 python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
@@ -145,7 +184,6 @@ MIT
 TODO(rapha):
 - implement fixed dropout filters again...
 - random scrips and viz scripts
-- readme and links and stuff
 
 TODO(sfenu3): spectral optimization objectives
 (search for "TODO(sfenu3"))
