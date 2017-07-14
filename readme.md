@@ -18,9 +18,9 @@ the meantime, you can feel free to read the
 [poster](raphagl.com/research/NeuralNetworkKnowledgeDistillationWithNoTrainingData.pdf)
 for this work, or contact me with any questions.
 
-- [Raphael Gontijo Lopes](http://raphagl.com)
+[Raphael Gontijo Lopes](http://raphagl.com)
 
-- Stefano Fenu TODO(sfenu3): whore urself
+Stefano Fenu TODO(sfenu3): whore urself
 
 ## Overview
 Our method for knowledge distillation has a few different steps: training,
@@ -80,7 +80,11 @@ python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
     --procedure=train
 ```
 
-### Calculate and Save Statistics for that Model
+### Compute and Save Statistics for that Model
+We use the original dataset to compute layer statistics for the model. These
+are the "metadata" mentioned in the paper, which we save so we can reconstruct
+a dataset representative of the original one.
+
 The `model_meta` and `model_checkpoint` flags are required because the
 `compute_stats` procedure loads a pre-trained model.
 
@@ -92,13 +96,22 @@ python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
 ```
 
 ### Optimize a Dataset Using the Saved Model and the Statistics
-This is where the real magic happens. The pre-trained model is loaded, and a
-new graph is constructed using its saved weights, but as constants. This
-ensures that the only thing being back-propagated to is the input
-`tf.Variable`. The `optimization_objective` flag is needed to determine what
-loss to use (see paper for details, coming soon on arxiv). The `dataset` flag
-is only needed to determine `io_size`, so if you're using a pre-trained model
-you don't have the original data for, you can mock the dataset class and simply
+This is where the real magic happens. We use the saved metadata and the
+pre-trained model (but not the original dataset) to reconstruct/optimize a new
+dataset that maximally reconstruct samples from the activation statistics.
+These samples and the corresponding objective loss can take different forms
+(`top_layer`, `all_layers`, `spectral_all_layers`, `spectral_layer_pairs`),
+which are discussed in the paper.
+
+The pre-trained model is loaded, and a new graph is constructed using its saved
+weights, but as `tf.constant`. This ensures that the only thing being
+back-propagated to is the input `tf.Variable`, which is initialized to random
+noise.
+
+The `optimization_objective` flag is needed to determine what loss to use (see
+paper for details, coming soon on arxiv). The `dataset` flag is only needed to
+determine `io_size`, so if you're using a pre-trained model+statistics that you
+don't have the original data for, you can mock the dataset class and simply
 provide the `self.io_size` attribute. Using all of this, a new dataset will be
 reconstructed and saved.
 
@@ -132,6 +145,10 @@ python main.py --run_name=experiment --model=hinton1200 \
 If you do have access to the original dataset, or you want to run Hinton's
 original Knowledge Distillation [paper](https://arxiv.org/abs/1503.02531), you
 can just specify that `dataset` flag.
+
+In order to run this baseline, you only need to have a pre-trained model, and
+the dataset it was originally trained with. This means you can skip the
+`compute_stats` and `optimize_dataset` steps.
 
 ```bash
 python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
