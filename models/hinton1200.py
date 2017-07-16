@@ -105,30 +105,66 @@ def load_model(sess, model_meta, model_checkpoint, output_size):
 
     return inputs, outputs, layer_activations, feed_dicts
 
-def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, output_size):
+def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size, output_size):
     new_saver = tf.train.import_meta_graph(model_meta)
     new_saver.restore(sess, model_checkpoint)
     temp = tf.placeholder(tf.float32, name='temperature')
 
     layer_activations = []
+    dropout_filters = [] # tuples (filter_placeholder, filter_assign_op)
+    dropout_rescales = []
 
     with tf.variable_scope('784-1200-1200-10_const'):
         with tf.variable_scope('inp_drop'):
-            inputs = inputs * 0.8 # dropout's rescale of the activations
+            dropout_rescale = tf.placeholder(tf.float32, name='dropout_rescale')
+            dropout_rescales.append(dropout_rescale)
+
+            dropout_filter_placeholder = tf.placeholder(tf.float32, [batch_size, 784], name='drop_place')
+            dropout_filter_var = tf.Variable(tf.zeros([batch_size, 784]), name='drop_var')
+            dropout_filter_assign_op = tf.assign(dropout_filter_var, dropout_filter_placeholder)
+            # here we manually apply dropout. this way, we can fix the dropout
+            # filter in the all_layers_dropout optimization_objective, or set
+            # it to an matrix of ones (identity function for element-wise
+            # multiply) in the other objectives, using the assign_op above.
+            inputs = tf.multiply(inputs, dropout_filter_var)
+            # a model trained with dropout, when not using a filter that drops
+            # neurons out, needs to rescale the layer's activations by dropout_probability.
+            inputs = inputs * dropout_rescale # 1.0 in all_layers_dropout, 0.8 otherwise
+            # the above applies to all layers in this model
+        dropout_filters.append((dropout_filter_placeholder, dropout_filter_assign_op, (batch_size, 784), 0.8))
 
         with tf.variable_scope('fc1'):
+            dropout_rescale = tf.placeholder(tf.float32, name='dropout_rescale')
+            dropout_rescales.append(dropout_rescale)
+
+            dropout_filter_placeholder = tf.placeholder(tf.float32, [batch_size, 1200], name='drop_place')
+            dropout_filter_var = tf.Variable(tf.zeros([batch_size, 1200]), name='drop_var')
+            dropout_filter_assign_op = tf.assign(dropout_filter_var, dropout_filter_placeholder)
             w = tf.constant(sess.run(tf.get_collection('fc1_w')[0]), name='w')
             b = tf.constant(sess.run(tf.get_collection('fc1_b')[0]), name='b')
             h = tf.matmul(inputs, w) + b
             z = tf.nn.relu(h, name='relu')
-            z = z * 0.5 # dropout's rescale of the activations
+            # apply both kinds of dropout (see above)
+            z = tf.multiply(z, dropout_filter_var)
+            z = z * dropout_rescale # 1.0 in all_layers_dropout, 0.5 otherwise
+        dropout_filters.append((dropout_filter_placeholder, dropout_filter_assign_op, (batch_size, 1200), 0.5))
         layer_activations.append((h, 1200))
 
         with tf.variable_scope('fc2'):
+            dropout_rescale = tf.placeholder(tf.float32, name='dropout_rescale')
+            dropout_rescales.append(dropout_rescale)
+
+            dropout_filter_placeholder = tf.placeholder(tf.float32, [batch_size, 1200], name='drop_place')
+            dropout_filter_var = tf.Variable(tf.zeros([batch_size, 1200]), name='drop_var')
+            dropout_filter_assign_op = tf.assign(dropout_filter_var, dropout_filter_placeholder)
             w = tf.constant(sess.run(tf.get_collection('fc2_w')[0]), name='w')
             b = tf.constant(sess.run(tf.get_collection('fc2_b')[0]), name='b')
-            z = tf.nn.relu(tf.matmul(z, w) + b, name='relu')
-            z = z * 0.5 # dropout's rescale of the activations
+            h = tf.matmul(z, w) + b
+            z = tf.nn.relu(h, name='relu')
+            # apply both kinds of dropout (see above)
+            z = tf.multiply(z, dropout_filter_var)
+            z = z * dropout_rescale # 1.0 in all_layers_dropout, 0.5 otherwise
+        dropout_filters.append((dropout_filter_placeholder, dropout_filter_assign_op, (batch_size, 1200), 0.5))
         layer_activations.append((h, 1200))
 
         with tf.variable_scope('fc3'):
@@ -137,6 +173,16 @@ def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, output_siz
             h = tf.div(tf.matmul(z, w) + b, temp)
         layer_activations.append((h, output_size))
 
-    feed_dicts = {'distill': {temp: 8.0}}
+    feed_dicts = {}
+    feed_dicts['distill'] = {
+            temp: 8.0,
+            dropout_rescales[0]: 0.8,
+            dropout_rescales[1]: 0.5,
+            dropout_rescales[2]: 0.5}
+    feed_dicts['distill_dropout'] = {
+            temp: 8.0,
+            dropout_rescales[0]: 1.0,
+            dropout_rescales[1]: 1.0,
+            dropout_rescales[2]: 1.0}
 
-    return h, layer_activations, feed_dicts
+    return h, layer_activations, feed_dicts, dropout_filters

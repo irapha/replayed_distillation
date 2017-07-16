@@ -22,8 +22,8 @@ def run(sess, f, data):
 
     # create "frozen" model, where each variable is now a constant.
     # the only thing being updated at every train step is the input tf.Variable.
-    outputs, layer_activations, feed_dicts = m.get(f.model).load_and_freeze_model(
-            sess, input_var, f.model_meta, f.model_checkpoint, output_size)
+    outputs, layer_activations, feed_dicts dropout_filters = m.get(f.model).load_and_freeze_model(
+            sess, input_var, f.model_meta, f.model_checkpoint, f.train_batch_size, output_size)
 
     # create ops specific to the optimization objective
     # (top_layer, all_layers, spectral_all_layers, spectral_layer_pairs)
@@ -53,19 +53,26 @@ def run(sess, f, data):
                 print('batch {}/100'.format(i), end='\r')
                 # reinitialize graph
                 sess.run(reinit_op)
+
+                # reinitialize dropout filters. Only all_layers_dropout does
+                # something fancy here. The other optimization_objectives just
+                # rescale each layer by keep_prob (which should be done in a
+                # model trained with dropout being used for inference)
+                opt_obj.reinitialize_dropout_filters(sess, dropout_filters)
+
                 # reinitialize input tf.Variable to random noise
                 input_kernels = [np.random.normal(0.15, 0.1, size=[input_size]) for _ in range(f.train_batch_size)]
                 sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
                 # initialize feed_dict with whatever samples from stats the optimization objective needs
-                optimize_feed_dict = opt_obj.sample_from_stats(stats, clas, f.train_batch_size, feed_dict=feed_dicts['distill'])
+                optimize_feed_dict = opt_obj.sample_from_stats(stats, clas, f.train_batch_size, feed_dicts=feed_dicts)
 
                 # the actual optimization step, where we backprop to the input tf.Variable
                 for _ in range(1000):
                     _ = sess.run(opt_obj.recreate_op, feed_dict=optimize_feed_dict)
 
                 optimized_inputs = sess.run(input_var)
-                optimized_outputs = [sess.run(outputs, feed_dict=feed_dicts['distill'])]
+                optimized_outputs = [sess.run(outputs, feed_dicts=feed_dicts)]
                 data_optimized[clas].append((optimized_inputs, optimized_outputs))
 
     data_dir = os.path.join(f.summary_folder, f.run_name, 'data')

@@ -197,6 +197,8 @@ MIT
 
 TODO(rapha):
 - implement fixed dropout filters again...
+- add `all_layers_dropout` as a new `opt_obj` in documentation everywhere. But
+  add a note that the only model that supports dropout right now is hinton1200.
 - random scrips and viz scripts
 
 TODO(sfenu3): spectral optimization objectives

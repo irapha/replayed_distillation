@@ -7,6 +7,8 @@ def get(optimization_objective):
         return top_layer
     elif optimization_objective == 'all_layers':
         return all_layers
+    elif optimization_objective == 'all_layers_dropout':
+        return all_layers_dropout
     elif optimization_objective == 'spectral_all_layers':
         return spectral_all_layers
     elif optimization_objective == 'spectral_layer_pairs':
@@ -24,11 +26,21 @@ class top_layer:
                 tf.pow(tf.nn.relu(self.top_layer_placeholder) - tf.nn.relu(tensor), 2))
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
-    def sample_from_stats(self, stats, clas, batch_size, feed_dict={}):
+    def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        if not feed_dicts: feed_dict = {}
+        else: feed_dict = feed_dicts['distill']
         top_layer_stats = stats[-1]
         sampled_values = sample_from_stats(top_layer_stats, clas, batch_size, self.top_layer_size)
         feed_dict[self.top_layer_placeholder] = sampled_values
         return feed_dict
+
+    def reinitialize_dropout_filters(self, sess, dropout_filters):
+        # in this objective, we assign the fixed dropout filters to be arrays
+        # of ones (identity). Since the model was trained with dropout, we set
+        # the layer-wise rescale factor to be the keep_prob of that layer (this
+        # is done by using the 'distill' feed_dict, in sample_from_stats)
+        for filter_place, filter_assign_op, shape, _ in dropout_filters:
+            sess.run(filter_assign_op, feed_dict={filter_place: get_dropout_filter(shape, 1.0)})
 
 class all_layers:
     def __init__(self, layer_activations):
@@ -45,11 +57,56 @@ class all_layers:
                     tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
-    def sample_from_stats(self, stats, clas, batch_size, feed_dict={}):
+    def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        if not feed_dicts: feed_dict = {}
+        else: feed_dict = feed_dicts['distill']
         for stat, placeholder, size in zip(stats, self.layer_placeholders, self.layer_sizes):
             sampled_values = sample_from_stats(stat, clas, batch_size, size)
             feed_dict[placeholder] = sampled_values
         return feed_dict
+
+    def reinitialize_dropout_filters(self, sess, dropout_filters):
+        # in this objective, we assign the fixed dropout filters to be arrays
+        # of ones (identity). Since the model was trained with dropout, we set
+        # the layer-wise rescale factor to be the keep_prob of that layer (this
+        # is done by using the 'distill' feed_dict, in sample_from_stats)
+        for filter_place, filter_assign_op, shape, _ in dropout_filters:
+            sess.run(filter_assign_op, feed_dict={filter_place: get_dropout_filter(shape, 1.0)})
+
+class all_layers_dropout:
+    def __init__(self, layer_activations):
+        self.layer_placeholders = []
+        self.layer_sizes = []
+        recreate_loss = 0.0
+        for tensor, size in layer_activations:
+            placeholder = tf.placeholder(tf.float32, [None, size],
+                    name='{}_placeholder'.format(get_name(tensor)))
+            self.layer_placeholders.append(placeholder)
+            self.layer_sizes.append(size)
+
+            recreate_loss += (1.0 / size) * tf.reduce_mean(
+                    tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+
+    def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        if not feed_dicts: feed_dict = {}
+        else: feed_dict = feed_dicts['distill_dropout']
+        for stat, placeholder, size in zip(stats, self.layer_placeholders, self.layer_sizes):
+            sampled_values = sample_from_stats(stat, clas, batch_size, size)
+            feed_dict[placeholder] = sampled_values
+        return feed_dict
+
+    def reinitialize_dropout_filters(self, sess, dropout_filters):
+        if len(dropout_filters) == 0:
+            raise Exception("dropout_filters can't be empty. Are you using" +
+                    "all_layers_dropout with a model that doesn't have" +
+                    "dropout?")
+        # in this objective, we assign fixed dropout filters that arent arrays
+        # of ones. There will be 0s with probability 1/keep_prob. we also use
+        # the distill_dropout feed_dict, which means the element-wise rescale
+        # factor is 1.0 for all layers
+        for filter_place, filter_assign_op, shape, keep_prob in dropout_filters:
+            sess.run(filter_assign_op, feed_dict={filter_place: get_dropout_filter(shape, keep_prob)})
 
 
 class spectral_all_layers:

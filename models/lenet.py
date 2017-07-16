@@ -127,7 +127,7 @@ def load_model(sess, model_meta, model_checkpoint, output_size):
 
     return inputs, outputs, layer_activations, feed_dicts
 
-def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, output_size):
+def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size, output_size):
     new_saver = tf.train.import_meta_graph(model_meta)
     new_saver.restore(sess, model_checkpoint)
     temperature = tf.placeholder(tf.float32, name='temperature')
@@ -194,7 +194,7 @@ def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, output_siz
 
     feed_dicts = {'distill': {temperature: 8.0}}
 
-    return logits, layer_activations, feed_dicts
+    return logits, layer_activations, feed_dicts, []
 
 def create_feed_dicts(temperature):
     feed_dicts = {key: {} for key in ['train', 'eval', 'distill']}
