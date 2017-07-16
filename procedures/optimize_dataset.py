@@ -22,7 +22,7 @@ def run(sess, f, data):
 
     # create "frozen" model, where each variable is now a constant.
     # the only thing being updated at every train step is the input tf.Variable.
-    outputs, layer_activations, feed_dicts dropout_filters = m.get(f.model).load_and_freeze_model(
+    outputs, layer_activations, feed_dicts, dropout_filters = m.get(f.model).load_and_freeze_model(
             sess, input_var, f.model_meta, f.model_checkpoint, f.train_batch_size, output_size)
 
     # create ops specific to the optimization objective
@@ -72,7 +72,7 @@ def run(sess, f, data):
                     _ = sess.run(opt_obj.recreate_op, feed_dict=optimize_feed_dict)
 
                 optimized_inputs = sess.run(input_var)
-                optimized_outputs = [sess.run(outputs, feed_dicts=feed_dicts)]
+                optimized_outputs = [sess.run(outputs, feed_dict=feed_dicts['distill'])]
                 data_optimized[clas].append((optimized_inputs, optimized_outputs))
 
     data_dir = os.path.join(f.summary_folder, f.run_name, 'data')

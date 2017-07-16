@@ -40,7 +40,7 @@ class top_layer:
         # the layer-wise rescale factor to be the keep_prob of that layer (this
         # is done by using the 'distill' feed_dict, in sample_from_stats)
         for filter_place, filter_assign_op, shape, _ in dropout_filters:
-            sess.run(filter_assign_op, feed_dict={filter_place: get_dropout_filter(shape, 1.0)})
+            sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 class all_layers:
     def __init__(self, layer_activations):
@@ -71,7 +71,7 @@ class all_layers:
         # the layer-wise rescale factor to be the keep_prob of that layer (this
         # is done by using the 'distill' feed_dict, in sample_from_stats)
         for filter_place, filter_assign_op, shape, _ in dropout_filters:
-            sess.run(filter_assign_op, feed_dict={filter_place: get_dropout_filter(shape, 1.0)})
+            sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 class all_layers_dropout:
     def __init__(self, layer_activations):
@@ -106,7 +106,10 @@ class all_layers_dropout:
         # the distill_dropout feed_dict, which means the element-wise rescale
         # factor is 1.0 for all layers
         for filter_place, filter_assign_op, shape, keep_prob in dropout_filters:
-            sess.run(filter_assign_op, feed_dict={filter_place: get_dropout_filter(shape, keep_prob)})
+            sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, keep_prob)})
+
+def _get_dropout_filter(shape, keep_prob):
+    return np.random.binomial(1, keep_prob, size=shape)
 
 
 class spectral_all_layers:

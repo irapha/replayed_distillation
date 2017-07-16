@@ -90,8 +90,8 @@ The `model_meta` and `model_checkpoint` flags are required because the
 ```bash
 python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
     --procedure=compute_stats \
-    --model_meta=summaries/experiment/checkpoint/hinton1200-8000.meta \
-    --model_checkpoint=summaries/experiment/checkpoint/hinton1200-8000
+    --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
+    --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000
 ```
 
 ### Optimize a Dataset Using the Saved Model and the Statistics
@@ -117,8 +117,8 @@ reconstructed and saved.
 ```bash
 python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
     --procedure=optimize_dataset \
-    --model_meta=summaries/experiment/checkpoint/hinton1200-8000.meta \
-    --model_checkpoint=summaries/experiment/checkpoint/hinton1200-8000 \
+    --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
+    --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
     --optimization_objective=top_layer
     # or all_layers, spectral_all_layers, spectral_layer_pairs
 ```
@@ -135,8 +135,8 @@ access to it), you can specify it as the `eval_dataset`.
 python main.py --run_name=experiment --model=hinton1200 \
     --dataset=summaries/experiment/data/data_optimized_top_layer_experiment.npy \
     --procedure=distill \
-    --model_meta=summaries/experiment/checkpoint/hinton1200-8000.meta \
-    --model_checkpoint=summaries/experiment/checkpoint/hinton1200-8000 \
+    --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
+    --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
     --eval_dataset=mnist --student_model=hinton800 --epochs=30
 ```
 
@@ -152,8 +152,8 @@ the dataset it was originally trained with. This means you can skip the
 ```bash
 python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
     --procedure=distill \
-    --model_meta=summaries/experiment/checkpoint/hinton1200-8000.meta \
-    --model_checkpoint=summaries/experiment/checkpoint/hinton1200-8000 \
+    --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
+    --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
     --eval_dataset=mnist --student_model=hinton800
 ```
 
