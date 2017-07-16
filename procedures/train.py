@@ -5,45 +5,29 @@ the dataset, and save the checkpoints.
 import numpy as np
 import os
 import tensorflow as tf
+import models as m
+import utils as u
 
-from utils import ensure_dir_exists
 
+def run(sess, f, data):
+    # create graph
+    input_size, output_size = data.io_shape
+    inputs = tf.placeholder(tf.float32, [None, input_size], name='inputs')
+    outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
-def merge_summary_list(summary_list, do_print=False):
-    summary_dict = {}
+    labels = tf.placeholder(tf.float32, [None, output_size], name='labels')
+    loss, train_step = create_train_ops(outputs, labels)
+    accuracy = create_eval_ops(outputs, labels)
+    summary_op = create_summary_ops(loss, accuracy)
 
-    for summary in summary_list:
-        summary_proto = tf.Summary()
-        summary_proto.ParseFromString(summary)
-
-        for val in summary_proto.value:
-            if val.tag not in summary_dict:
-                summary_dict[val.tag] = []
-            summary_dict[val.tag].append(val.simple_value)
-
-    # get mean of each tag
-    for k, v in summary_dict.items():
-        summary_dict[k] = np.mean(v)
-
-    if do_print:
-        print(summary_dict)
-
-    # create final Summary with mean of values
-    final_summary = tf.Summary()
-    final_summary.ParseFromString(summary_list[0])
-
-    for i, val in enumerate(final_summary.value):
-        final_summary.value[i].simple_value = summary_dict[val.tag]
-
-    return final_summary
-
-def run(sess, f, data, placeholders, train_step, summary_op):
-    inp, labels, keep_inp, keep, temp, labels_temp = placeholders
-    # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
+    # only initialize non-initialized vars:
+    u.init_uninitted_vars(sess)
+    # (this is not super important for training, but its very important
+    # in optimize, and in distill)
 
     saver = tf.train.Saver(tf.global_variables())
 
-    summary_dir = os.path.join(f.summary_folder, f.run_name)
+    summary_dir = os.path.join(f.summary_folder, f.run_name, 'train')
     train_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
     trainbatch_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train_batch'), sess.graph)
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
@@ -55,44 +39,57 @@ def run(sess, f, data, placeholders, train_step, summary_op):
             print('Epoch: {}'.format(i))
             for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
                 summary, _ = sess.run([summary_op, train_step],
-                        feed_dict={inp: batch_x, labels: batch_y,
-                            #  keep_inp: 0.8, keep: 0.5})
-                            keep_inp: 1.0, keep: 0.5,
-                            temp: 1.0, labels_temp: 1.0})
-
+                        feed_dict={**feed_dicts['train'],
+                                   inputs: batch_x, labels: batch_y})
                 trainbatch_writer.add_summary(summary, global_step)
 
                 if global_step % f.eval_interval == 0:
-                    # eval test
+                    # eval test set
                     summaries = []
                     for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
                         summary = sess.run(summary_op,
-                                feed_dict={inp: test_batch_x, labels: test_batch_y,
-                                    keep_inp: 1.0, keep: 1.0,
-                                    temp: 1.0, labels_temp: 1.0})
+                                feed_dict={**feed_dicts['eval'],
+                                           inputs: test_batch_x, labels: test_batch_y})
                         summaries.append(summary)
-                    test_writer.add_summary(merge_summary_list(summaries, True), global_step)
+                    test_writer.add_summary(u.merge_summary_list(summaries, True), global_step)
 
-                    # eval train
+                    # eval train set
                     summaries = []
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
                         summary = sess.run(summary_op,
-                                feed_dict={inp: train_batch_x, labels: train_batch_y,
-                                    keep_inp: 1.0, keep: 1.0, temp: 1.0})
+                                feed_dict={**feed_dicts['eval'],
+                                           inputs: train_batch_x, labels: train_batch_y})
                         summaries.append(summary)
-                    train_writer.add_summary(merge_summary_list(summaries, True), global_step)
+                    train_writer.add_summary(u.merge_summary_list(summaries, True), global_step)
 
                 global_step += 1
 
                 if global_step % f.checkpoint_interval == 0:
                     checkpoint_dir = os.path.join(summary_dir, 'checkpoint/')
-                    ensure_dir_exists(checkpoint_dir)
+                    u.ensure_dir_exists(checkpoint_dir)
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
-                    saver.save(sess, checkpoint_file, global_step=global_step)
+                    saved_file = saver.save(sess, checkpoint_file, global_step=global_step)
 
-def create_placeholders(sess, input_size, output_size, optionals):
-    keep_inp, keep, temp, labels_temp = optionals
-    inp = tf.placeholder(tf.float32, [None, input_size], name='inputs')
-    labels = tf.placeholder(tf.float32, [None, output_size], name='outputs')
-    return inp, labels, keep_inp, keep, labels_temp
+    print('saved model at {}'.format(saved_file))
+
+def create_train_ops(h, labels, scope='train_ops'):
+    with tf.variable_scope('xent_' + scope):
+        loss = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+
+    with tf.variable_scope('opt_' + scope):
+        train_step = tf.train.AdamOptimizer().minimize(loss)
+
+    return loss, train_step
+
+def create_eval_ops(y, y_, scope='train_ops'):
+    with tf.variable_scope('eval_' + scope):
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return accuracy
+
+def create_summary_ops(loss, accuracy):
+    loss_summary_op = tf.summary.scalar('loss', loss)
+    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
+    return tf.summary.merge([loss_summary_op, accuracy_summary_op])
 

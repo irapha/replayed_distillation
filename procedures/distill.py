@@ -7,47 +7,37 @@ import os
 import tensorflow as tf
 import utils as u
 import models as m
+import datasets as d
 
-from utils import ensure_dir_exists
+from utils import ensure_dir_exists, merge_summary_list
 
 MODEL_META = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000.meta'
 MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200-8000'
 
-def merge_summary_list(summary_list, do_print=False):
-    summary_dict = {}
 
-    for summary in summary_list:
-        summary_proto = tf.Summary()
-        summary_proto.ParseFromString(summary)
+def run(sess, f, data):
+    # load data that will be used for evaluating the distillation process
+    eval_data = d.get(f.eval_dataset)
 
-        for val in summary_proto.value:
-            if val.tag not in summary_dict:
-                summary_dict[val.tag] = []
-            summary_dict[val.tag].append(val.simple_value)
+    # load teacher graph
+    _, output_size = data.io_shape
+    inputs, teacher_outputs, _, teacher_feed_dicts = m.get(f.model).load_model(sess, f.model_meta, f.model_checkpoint, output_size)
+    teacher_outputs = tf.stop_gradient(tf.nn.softmax(teacher_outputs))
 
-    # get mean of each tag
-    for k, v in summary_dict.items():
-        summary_dict[k] = np.mean(v)
+    # create student graph
+    outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
-    if do_print:
-        print(summary_dict)
+    loss, train_step = create_train_ops(outputs, teacher_outputs)
+    accuracy = create_eval_ops(outputs, teacher_outputs)
+    summary_op = create_summary_ops(loss, accuracy)
 
-    # create final Summary with mean of values
-    final_summary = tf.Summary()
-    final_summary.ParseFromString(summary_list[0])
-
-    for i, val in enumerate(final_summary.value):
-        final_summary.value[i].simple_value = summary_dict[val.tag]
-
-    return final_summary
-
-def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldistill):
-    inp, labels, keep_inp, keep, temp, labels_temp, labels_evaldistill = placeholders
-    # train graph from scratch, save checkpoints every so often, eval, do summaries, etc.
+    # only initialize non-initialized vars:
+    u.init_uninitted_vars(sess)
+    # (this is very important in distill: we don't want to reinit teacher model)
 
     saver = tf.train.Saver(tf.global_variables())
 
-    summary_dir = os.path.join(f.summary_folder, f.run_name)
+    summary_dir = os.path.join(f.summary_folder, f.run_name, 'distill')
     train_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train'), sess.graph)
     trainbatch_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'train_batch'), sess.graph)
     test_writer = tf.summary.FileWriter(os.path.join(summary_dir, 'test'), sess.graph)
@@ -57,35 +47,34 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
 
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
-            for batch_x, batch_y in data.train_epoch_in_batches(f.train_batch_size):
-                summary, _ = sess.run([summary_op_evaldistill, train_step],
-                        feed_dict={inp: batch_x,
-                            labels_evaldistill: batch_y,
-                            keep_inp: 1.0, keep: 1.0,
-                            'temp_1:0': 8.0, temp: 8.0})
-
+            for batch_x, _ in data.train_epoch_in_batches(f.train_batch_size):
+                # train step. we don't need to feed batch_y because the student
+                # is being trained to mimic the teacher's temperature-scaled
+                # activations.
+                summary, _ = sess.run([summary_op, train_step],
+                        feed_dict={**teacher_feed_dicts['distill'],
+                                   **feed_dicts['distill'],
+                                   inputs: batch_x})
                 trainbatch_writer.add_summary(summary, global_step)
 
                 if global_step % f.eval_interval == 0:
                     # eval test
                     summaries = []
-                    for test_batch_x, test_batch_y in data.test_epoch_in_batches(f.test_batch_size):
-                        summary = sess.run(summary_op_evaldistill,
-                                feed_dict={inp: test_batch_x,
-                                    labels_evaldistill: test_batch_y,
-                                    keep_inp: 1.0, keep: 1.0,
-                                    'temp_1:0': 1.0, temp: 1.0})
+                    for test_batch_x, test_batch_y in eval_data.test_epoch_in_batches(f.test_batch_size):
+                        summary = sess.run(summary_op,
+                                feed_dict={**teacher_feed_dicts['distill'],
+                                           **feed_dicts['distill'],
+                                           inputs: test_batch_x})
                         summaries.append(summary)
                     test_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
                     # eval train
                     summaries = []
                     for train_batch_x, train_batch_y in data.train_epoch_in_batches(f.train_batch_size):
-                        summary = sess.run(summary_op_evaldistill,
-                                feed_dict={inp: train_batch_x,
-                                    labels_evaldistill: train_batch_y,
-                                    keep_inp: 1.0, keep: 1.0,
-                                    'temp_1:0': 1.0, temp: 1.0})
+                        summary = sess.run(summary_op,
+                                feed_dict={**teacher_feed_dicts['distill'],
+                                           **feed_dicts['distill'],
+                                           inputs: train_batch_x})
                         summaries.append(summary)
                     train_writer.add_summary(merge_summary_list(summaries, True), global_step)
 
@@ -97,20 +86,25 @@ def run(sess, f, data, placeholders, train_step, summary_op, summary_op_evaldist
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
 
-def create_placeholders(sess, input_size, output_size, _):
-    new_saver = tf.train.import_meta_graph(MODEL_META)
-    new_saver.restore(sess, MODEL_CHECKPOINT)
+    print('distilled model saved in {}'.format(checkpoint_file))
 
-    inp = tf.get_collection('input')[0]
-    out = tf.get_collection('output')[0]
-    keep_inp = tf.get_collection('keep_inp')[0]
-    keep = tf.get_collection('keep')[0]
-    labels_temp = tf.get_collection('labels_temp')[0]
+def create_train_ops(h, labels, scope='train_ops'):
+    with tf.variable_scope('xent_' + scope):
+        loss = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
 
-    with tf.variable_scope('labels_sftmx'):
-        labels = tf.nn.softmax(out)
+    with tf.variable_scope('opt_' + scope):
+        train_step = tf.train.AdamOptimizer().minimize(loss)
 
-    with tf.variable_scope('stoppp'):
-        labels = tf.stop_gradient(labels)
+    return loss, train_step
 
-    return inp, labels, keep_inp, keep, labels_temp
+def create_eval_ops(y, y_, scope='train_ops'):
+    with tf.variable_scope('eval_' + scope):
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    return accuracy
+
+def create_summary_ops(loss, accuracy):
+    loss_summary_op = tf.summary.scalar('loss', loss)
+    accuracy_summary_op = tf.summary.scalar('accuracy', accuracy)
+    return tf.summary.merge([loss_summary_op, accuracy_summary_op])

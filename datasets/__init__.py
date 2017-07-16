@@ -12,11 +12,9 @@ def get(dataset_name):
     if dataset_name == 'mnist':
         from . import mnist as m
         return m.MNISTIterator()
+    if dataset_name == 'mnist_conv':
+        from . import mnist_conv as m
+        return m.MNISTResizedIterator()
     else:
-        raise NotImplemented('This dataset not implemented')
-
-def get_io_size(dataset_name):
-    if dataset_name in ['mnist', 'mnist_bottleneck']:
-        return 784, 10
-    else:
-        raise NotImplemented('This dataset not implemented')
+        from . import optimized_dataset as d
+        return d.OptimizedDatasetIterator(dataset_name)

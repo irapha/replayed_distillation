@@ -10,7 +10,8 @@ from procedures.replay import reshape_to_row
 from random import choice
 
 mnist = d.get('mnist')
-recns = np.load('stats/{}'.format(sys.argv[1]))[()]
+dat = sys.argv[1]
+recns = np.load('stats/{}'.format(dat))[()]
 #  recns_notmedian = np.load('data_optimized_notmedian.npy')[()]
 
 og_means = []
@@ -29,7 +30,7 @@ for clas in range(10):
     for batch_x, _ in recns[clas]:
         clas_imgs.extend(batch_x)
     re_means.append(np.squeeze(np.mean(clas_imgs, axis=0)))
-cv2.imwrite('re_means.png', 255*reshape_to_row(np.array(re_means), 28))#, 32))
+cv2.imwrite('viz/MEANS_{}.png'.format(dat[:-4]), 255*reshape_to_row(np.array(re_means), 28))#32))
 # cv2.imshow('re_means.png', reshape_to_row(np.array(re_means)))
 
 re_random = []
@@ -38,7 +39,7 @@ for clas in range(10):
     for batch_x, _ in recns[clas]:
         clas_imgs.extend(batch_x)
     re_random.append(choice(clas_imgs))
-cv2.imwrite('re_random.png', 255*reshape_to_row(np.array(re_random), 28))#32))
+cv2.imwrite('viz/RAND_{}.png'.format(dat[:-4]), 255*reshape_to_row(np.array(re_random), 28))#32))
 # cv2.imshow('re_random.png', reshape_to_row(np.array(re_random)))
 
 # cv2.waitKey(0)
@@ -77,4 +78,4 @@ for i, (og, re) in enumerate(zip(og_means, re_means)):
 
 print('og is red, re is blue')
 # plt.show()
-plt.savefig('data_reconstruction.png', dpi=300)
+plt.savefig('viz/PIXELHIST_{}.png'.format(dat[:-4]), dpi=300)
