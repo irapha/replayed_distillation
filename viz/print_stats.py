@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tensorflow as tf
 
@@ -17,9 +18,8 @@ means, _, stddev, shape = all_stats[-1]
 
 print('statistics for top layer shape=(?, {})'.format(shape))
 for clas in range(len(means.keys())):
-    print('class {} means'.format(clas))
-    print(repr(means[clas]), end="\n\n")
-    print('class {} stddev'.format(clas))
-    print(repr(stddev[clas]), end="\n\n")
+    print('class {}'.format(clas))
+    print('means: {}'.format(repr(means[clas])))
+    print('stddev: {}'.format(repr(stddev[clas])), end="\n\n")
 
 
