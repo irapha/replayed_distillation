@@ -14,7 +14,8 @@ def get(optimization_objective):
     elif optimization_objective == 'spectral_layer_pairs':
         return spectral_layer_pairs
     else:
-        raise NotImplemented('This procedure not implemented yet')
+        raise NotImplemented('Optimization objective {} not implemented' +
+                'yet'.format(optimization_objective))
 
 class top_layer:
     def __init__(self, layer_activations):
