@@ -1,16 +1,25 @@
 import numpy as np
+import tensorflow as tf
 
 np.set_printoptions(linewidth=200)
 
-all_stats = np.load('stats/activation_stats_replay_drop_rescaleonly.npy')[()]
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+flags.DEFINE_string('run_name', '', 'The name of the experimental run')
+flags.DEFINE_string('summary_folder', 'summaries/', 'Folder to save summaries, logs, stats, optimized_datasets')
 
-s_mean, s_sdev = all_stats['student_stats']
-t_mean, t_sdev = all_stats['teacher_stats']
+all_stats = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
+    'activation_stats_{}.npy'.format(FLAGS.run_name)))[()]
 
-print('student mean\nteacher mean\nstudent stddev\nteacher stddev\n')
+# TODO(sfenu3): if you modify what stats are being saved in compute_stats
+# procedure, modify the line below too.
+means, _, stddev, shape = all_stats[-1]
 
-for clas in range(10):
-    for a in [s_mean, t_mean, s_sdev, t_sdev]:
-        print(repr(a[clas]))
-    print('')
+print('statistics for top layer shape=(?, {})'.format(shape))
+for clas in range(len(means.keys())):
+    print('class {} means'.format(clas))
+    print(repr(means[clas]), end="\n\n")
+    print('class {} stddev'.format(clas))
+    print(repr(stddev[clas]), end="\n\n")
+
 
