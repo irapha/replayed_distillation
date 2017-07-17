@@ -35,7 +35,7 @@ flags.DEFINE_string('model_checkpoint', '', 'The checkpoint to restore the graph
 # e.g.: summaries/test_train_works/checkpoint/hinton1200-8000
 
 # the following is only used for when optimizing a new dataset
-flags.DEFINE_string('optimization_objective', '', 'top_layer, all_layers, spectral_all_layers, spectral_layer_pairs')
+flags.DEFINE_string('optimization_objective', '', 'top_layer, all_layers, all_layers_dropout, spectral_all_layers, spectral_layer_pairs')
 
 # the following is only used for when distilling a model. --dataset should be
 # the reconstructed/optimized dataset location (or the original dataset in the

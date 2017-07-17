@@ -99,8 +99,10 @@ This is where the real magic happens. We use the saved metadata and the
 pre-trained model (but not the original dataset) to reconstruct/optimize a new
 dataset that maximally reconstruct samples from the activation statistics.
 These samples and the corresponding objective loss can take different forms
-(`top_layer`, `all_layers`, `spectral_all_layers`, `spectral_layer_pairs`),
-which are discussed in the paper.
+(`top_layer`, `all_layers`, `all_layers_dropout`, `spectral_all_layers`, `spectral_layer_pairs`),
+which are discussed in the paper. Note that `all_layers_dropout` is meant for
+teacher models that are trained with dropout. Currently, we only provide
+`hinton1200` that does.
 
 The pre-trained model is loaded, and a new graph is constructed using its saved
 weights, but as `tf.constant`. This ensures that the only thing being
@@ -196,8 +198,6 @@ MIT
 
 
 TODO(rapha):
-- add `all_layers_dropout` as a new `opt_obj` in documentation everywhere. But
-  add a note that the only model that supports dropout right now is hinton1200.
 - random scrips and viz scripts
 
 TODO(sfenu3): spectral optimization objectives

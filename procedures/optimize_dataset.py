@@ -26,7 +26,7 @@ def run(sess, f, data):
             sess, input_var, f.model_meta, f.model_checkpoint, f.train_batch_size, output_size)
 
     # create ops specific to the optimization objective
-    # (top_layer, all_layers, spectral_all_layers, spectral_layer_pairs)
+    # (top_layer, all_layers, all_layers_dropout, spectral_all_layers, spectral_layer_pairs)
     opt_obj = o.get(f.optimization_objective)(layer_activations)
     # this created class will also be used to create the feed_dicts we need for
     # the optimization objective at every train step.
