@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+# This file is a set of commonly used functions by the viz scripts. It
+# is not meant to be run on its own
 
 def unblockshaped(arr, h, w):
     n, nrows, ncols = arr.shape
@@ -16,11 +18,4 @@ def reshape_to_grid(arr):
     grid = np.array([np.reshape(img, (28, 28)) for img in arr])
     size = int(28 * np.sqrt(grid.shape[0]))
     return unblockshaped(grid, size, size)
-
-
-# data = np.load('data_optimized.npy')[()]
-
-# for clas in range(10):
-    # cv2.imshow('{}'.format(clas), reshape_to_grid(data[clas][0][0]))
-# cv2.waitKey(0)
 

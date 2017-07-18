@@ -1,16 +1,19 @@
 import sys
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
+import tensorflow as tf
 
-# old one: used in poster.
-# all_stats = np.load('stats/activation_stats_hinton800_replayed_center0p15_relumse_covsavevar_testalllayers_weighting_1kiter_lr0p07_100t64experclas.npy')[()]
-all_stats = np.load('stats/{}'.format(sys.argv[1]))[()]
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+flags.DEFINE_string('student_stats', '', 'The saved statistics of the student model on the original dataset')
+flags.DEFINE_string('teacher_stats', '', 'The saved statistics of the teacher model on the original dataset')
 
-s_mean, _, s_sdev = all_stats['student_stats']
-t_mean, _, t_sdev = all_stats['teacher_stats']
+
+# TODO(sfenu3): if you modify what stats are being saved in compute_stats
+# procedure, modify the line below too.
+s_mean, _, s_sdev, _ = np.load(FLAGS.student_stats)[()][-1]
+t_mean, _, t_sdev, _ = np.load(FLAGS.teacher_stats)[()][-1]
 
 f, subs = plt.subplots(10, 10, sharey=True, sharex=True)
 x = np.linspace(-1400, 1400, 100)

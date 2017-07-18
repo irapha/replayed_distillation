@@ -191,6 +191,34 @@ python main.py --run_name=experiment --model=lenet \
     --eval_dataset=mnist_conv --student_model=lenet_half --epochs=30
 ```
 
+### Visualization
+The `viz/` directory contains useful scripts you can run to visualize the saved
+statistics and optimized datasets.
+
+Printing top layer per class means and standard deviations
+```bash
+python viz/print_stats.py --run_name=experiment
+```
+
+Vizualizing per-class and per-pixel means, as well as a randomly selected
+example of an optimized dataset.
+```bash
+python viz/print_stats.py \
+    --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment.npy
+```
+
+Compare per-class, per-output normal distribution for both student and teacher.
+Note that this requires that you have run `compute_stats` on a distilled
+student model. You might also want to play with the script to make each subplot
+zoomed in the best area (or apply a softmax over each mean/stddev pair of the
+statistics).
+```bash
+python viz/stats_viz.py \
+    --teacher_stats=summaries/experiment/stats/activation_stats_experiment.npy \
+    --student_stats=summaries/train_distilled_student/stats/activation_stats_train_distilled_student.npy
+```
+
+
 ## License
 MIT
 
@@ -199,6 +227,7 @@ MIT
 
 TODO(rapha):
 - random scrips and viz scripts
+- images
 
 TODO(sfenu3): spectral optimization objectives
 (search for "TODO(sfenu3"))
