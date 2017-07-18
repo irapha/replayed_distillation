@@ -241,17 +241,35 @@ For a longer description of each optimization objective, please refeer to the
 paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
-
-<img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" />
-Hinton's Knowledge Distillation
----|---
-<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" > | <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" />
----|---
-Top Layer Input Reconstruction and Distillation | All Layers Input Reconstruction and Distillation
----|---
-<img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" /> | <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" />
----|---
-Spectral All Layers Input Reconstruction and Distillation | Spectral Layer Pairs Input Reconstruction and Distillation
+<table>
+  <tr>
+    <td colspan="2">
+      <img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" />
+      Hinton's Knowledge Distillation
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" >
+      Top Layer Input Reconstruction and Distillation
+    </td>
+    <td>
+      <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" />
+      All Layers Input Reconstruction and Distillation
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" />
+      Spectral All Layers Input Reconstruction and Distillation
+    </td>
+    <td>
+      <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" />
+      Spectral Layer Pairs Input Reconstruction and Distillation
+    </td>
+  </tr>
+  </tr>
+</table>
 
 
 TODO(sfenu3): spectral optimization objectives
