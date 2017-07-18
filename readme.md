@@ -1,5 +1,7 @@
 # Data-Free Knowledge Distillation For Deep Neural Networks
 
+![Production pipeline image](imgs/production_pipeline.png)
+
 | [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
 |---|---|
 
@@ -226,6 +228,13 @@ python viz/get_stats_sample.py --run_name=experiment
 ## License
 MIT
 
+## Appendix
+For a longer description of each optimization objective, please refeer to the
+paper, which will be published on arxiv soon. In the meantime, if this readme
+was not sufficient, here are some diagrams from the paper:
+
+### Hinton's Knowledge Distillation
+image
 
 TODO(rapha):
 - images
