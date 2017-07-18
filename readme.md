@@ -1,6 +1,6 @@
 # Data-Free Knowledge Distillation For Deep Neural Networks
 
-<div style="text-align:center">
+<div align="center">
 <img alt="Production pipeline image" src="imgs/production_pipeline.png" width="50%" />
 
 | [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
