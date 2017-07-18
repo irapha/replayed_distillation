@@ -241,9 +241,9 @@ For a longer description of each optimization objective, please refeer to the
 paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
-<table style="text-align: center; bgcolor: white;" align="center">
+<table>
   <tr>
-    <td colspan="2">
+    <td colspan="2" align="center">
       <img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/><br/>
       <i>Hinton's Knowledge Distillation</i>
     </td>
