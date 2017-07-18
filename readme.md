@@ -241,17 +241,17 @@ For a longer description of each optimization objective, please refeer to the
 paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
-<table style="text-align: center; bgcolor: white;">
+<table style="text-align: center; bgcolor: white;" align="center">
   <tr>
     <td colspan="2">
       <img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/>
-      Hinton's Knowledge Distillation
+      <i>Hinton's Knowledge Distillation</i>
     </td>
   </tr>
   <tr>
     <td>
       <img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" >
-      Top Layer Input Reconstruction and Distillation
+      <i>Top Layer Input Reconstruction and Distillation</i>
     </td>
     <td>
       <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" />
@@ -261,11 +261,11 @@ was not sufficient, here are some diagrams from the paper:
   <tr>
     <td>
       <img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" />
-      <p><i>Spectral All Layers Input Reconstruction and Distillation</i></p>
+      <i>Spectral All Layers Input Reconstruction and Distillation</i>
     </td>
     <td>
       <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" />
-      <p>Spectral Layer Pairs Input Reconstruction and Distillation</p>
+      <i>Spectral Layer Pairs Input Reconstruction and Distillation</i>
     </td>
   </tr>
   </tr>
