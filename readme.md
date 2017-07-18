@@ -1,7 +1,7 @@
 # Data-Free Knowledge Distillation For Deep Neural Networks
 
 <div align="center">
-<img alt="Production pipeline image" src="imgs/production_pipeline.png" width="50%" />
+<img alt="Production pipeline image" src="imgs/production_pipeline.png" />
 
 | [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
 |---|---|
@@ -207,6 +207,9 @@ python viz/print_stats.py --run_name=experiment
 
 Vizualizing per-class and per-pixel means, as well as a randomly selected
 example of an optimized dataset.
+<div align="center">
+<img alt="Per-class and per-pixel means and randoms image" src="imgs/means_and_random.png" width="70%"/>
+</div>
 ```bash
 python viz/print_stats.py \
     --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment.npy
@@ -237,7 +240,29 @@ paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
 ### Hinton's Knowledge Distillation
-image
+<div align="center">
+<img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/>
+</div>
+
+### Top Layer Input Reconstruction and Distillation
+<div align="center">
+<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" width="50%"/>
+</div>
+
+### All Layers Input Reconstruction and Distillation
+<div align="center">
+<img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" width="50%"/>
+</div>
+
+### Spectral All Layers Input Reconstruction and Distillation
+<div align="center">
+<img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" width="50%"/>
+</div>
+
+### Spectral Layer Pairs Input Reconstruction and Distillation
+<div align="center">
+<img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" width="50%"/>
+</div>
 
 TODO(rapha):
 - images
