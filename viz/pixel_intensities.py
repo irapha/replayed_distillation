@@ -11,13 +11,11 @@ from view import reshape_to_row
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string('run_name', '', 'The name of the experimental run')
-flags.DEFINE_string('summary_folder', 'summaries/', 'Folder where summaries, logs, stats, optimized_datasets are saved')
 flags.DEFINE_string('dataset', '', 'The path to an optimized dataset.')
 
 
 data = np.load(FLAGS.dataset)[()]
-num_classes = data[0][0][1][0][0]
+num_classes = len(data[0][0][1][0][0])
 # ^ see datasets/optimized_dataset.py:OptimizedDataset.io_size
 
 print('computing per-class, per-pixel means')

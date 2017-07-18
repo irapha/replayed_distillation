@@ -18,9 +18,9 @@ def reshape_to_grid(arr):
     return unblockshaped(grid, size, size)
 
 
-data = np.load('data_optimized.npy')[()]
+# data = np.load('data_optimized.npy')[()]
 
-for clas in range(10):
-    cv2.imshow('{}'.format(clas), reshape_to_grid(data[clas][0][0]))
-cv2.waitKey(0)
+# for clas in range(10):
+    # cv2.imshow('{}'.format(clas), reshape_to_grid(data[clas][0][0]))
+# cv2.waitKey(0)
 
