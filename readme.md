@@ -2,10 +2,6 @@
 
 <div align="center">
 <img alt="Production pipeline image" src="imgs/production_pipeline.png" />
-
-| [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
-|---|---|
-
 </div>
 
 ## Abstract
@@ -25,6 +21,9 @@ The paper is currently under review for [NIPS 2017](https://nips.cc/) and will
 be on arxiv soon! In the meantime, you can feel free to read the
 [poster](raphagl.com/research/NeuralNetworkKnowledgeDistillationWithNoTrainingData.pdf)
 for this work, or contact me with any questions.
+
+| [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
+|---|---|
 
 ## Overview
 Our method for knowledge distillation has a few different steps: training,
@@ -207,9 +206,11 @@ python viz/print_stats.py --run_name=experiment
 
 Vizualizing per-class and per-pixel means, as well as a randomly selected
 example of an optimized dataset.
+
 <div align="center">
-<img alt="Per-class and per-pixel means and randoms image" src="imgs/means_and_random.png" width="70%"/>
+<img alt="Per-class and per-pixel means and randoms image" src="imgs/means_and_random.png" width="90%"/>
 </div>
+
 ```bash
 python viz/print_stats.py \
     --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment.npy
@@ -239,27 +240,27 @@ For a longer description of each optimization objective, please refeer to the
 paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
-### Hinton's Knowledge Distillation
 <div align="center">
 <img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/>
+Hinton's Knowledge Distillation
 </div>
 
-### Top Layer Input Reconstruction and Distillation
+Top Layer Input Reconstruction and Distillation
 <div align="center">
-<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" width="50%"/>
+<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" width="50%"/> <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" width="50%"/>
 </div>
 
-### All Layers Input Reconstruction and Distillation
+All Layers Input Reconstruction and Distillation
 <div align="center">
-<img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" width="50%"/>
+
 </div>
 
-### Spectral All Layers Input Reconstruction and Distillation
+Spectral All Layers Input Reconstruction and Distillation
 <div align="center">
 <img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" width="50%"/>
 </div>
 
-### Spectral Layer Pairs Input Reconstruction and Distillation
+Spectral Layer Pairs Input Reconstruction and Distillation
 <div align="center">
 <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" width="50%"/>
 </div>
