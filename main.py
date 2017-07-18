@@ -16,7 +16,7 @@ flags.DEFINE_string('summary_folder', 'summaries/', 'Folder to save summaries, l
 flags.DEFINE_string('log_file', 'log.json', 'Default filename for logs saving')
 
 flags.DEFINE_string('commit', '', '[OPTIONAL] commit hash for current experiment')
-flags.DEFINE_string('dataset', '', 'ImageNet or MNIST')
+flags.DEFINE_string('dataset', '', 'mnist, mnist_conv, or the path to an optimized dataset.')
 flags.DEFINE_string('model', '', 'hinton1200, hinton800, lenet, lenet_half')
 flags.DEFINE_integer('rng_seed', 42, 'RNG seed, fixed for consistency')
 flags.DEFINE_string('procedure', '', 'train, compute_stats, optimize_dataset, distill')

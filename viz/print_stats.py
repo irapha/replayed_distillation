@@ -7,7 +7,7 @@ np.set_printoptions(linewidth=200)
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('run_name', '', 'The name of the experimental run')
-flags.DEFINE_string('summary_folder', 'summaries/', 'Folder to save summaries, logs, stats, optimized_datasets')
+flags.DEFINE_string('summary_folder', 'summaries/', 'Folder where summaries, logs, stats, optimized_datasets are saved')
 
 all_stats = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
     'activation_stats_{}.npy'.format(FLAGS.run_name)))[()]
