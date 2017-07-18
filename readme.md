@@ -246,6 +246,8 @@ was not sufficient, here are some diagrams from the paper:
     <td colspan="2" align="center">
       <img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/><br/>
     </td>
+  </tr>
+  <tr>
     <td colspan="2" align="center">
       <i>Hinton's Knowledge Distillation</i>
     </td>
@@ -255,10 +257,12 @@ was not sufficient, here are some diagrams from the paper:
       <img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" ><br/>
     </td>
     <td align="center">
-      <i>Top Layer Input Reconstruction and Distillation</i>
-    </td>
-    <td align="center">
       <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" /><br/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <i>Top Layer Input Reconstruction and Distillation</i>
     </td>
     <td align="center">
       <i>All Layers Input Reconstruction and Distillation</i>
@@ -269,10 +273,12 @@ was not sufficient, here are some diagrams from the paper:
       <img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" /><br/>
     </td>
     <td align="center">
-      <i>Spectral All Layers Input Reconstruction and Distillation</i>
-    </td>
-    <td align="center">
       <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" /><br/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <i>Spectral All Layers Input Reconstruction and Distillation</i>
     </td>
     <td align="center">
       <i>Spectral Layer Pairs Input Reconstruction and Distillation</i>
