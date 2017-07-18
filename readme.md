@@ -243,27 +243,27 @@ was not sufficient, here are some diagrams from the paper:
 
 <table>
   <tr>
-    <td colspan="2" align="center">
+    <td colspan="2" align="center" bgcolor="white">
       <img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/><br/>
       <i>Hinton's Knowledge Distillation</i>
     </td>
   </tr>
   <tr>
-    <td>
+    <td align="center" bgcolor="white">
       <img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" ><br/>
       <i>Top Layer Input Reconstruction and Distillation</i>
     </td>
-    <td>
+    <td align="center" bgcolor="white">
       <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" /><br/>
       <i>All Layers Input Reconstruction and Distillation</i>
     </td>
   </tr>
   <tr>
-    <td>
+    <td align="center" bgcolor="white">
       <img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" /><br/>
       <i>Spectral All Layers Input Reconstruction and Distillation</i>
     </td>
-    <td>
+    <td align="center" bgcolor="white">
       <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" /><br/>
       <i>Spectral Layer Pairs Input Reconstruction and Distillation</i>
     </td>
