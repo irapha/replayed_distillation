@@ -241,22 +241,14 @@ For a longer description of each optimization objective, please refeer to the
 paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
-<div align="center">
-<img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="48%"/>
+
+<img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" />
 Hinton's Knowledge Distillation
-</div>
-
-Top Layer Input Reconstruction and Distillation
-<div align="center">
-<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" width="43%"/> <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" width="56%"/>
-</div>
-
-All Layers Input Reconstruction and Distillation
-
-<img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" width="49.6%"/> | <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" width="49.6%"/>
 ---|---
-Spectral All Layers Input Reconstruction and Distillation | Spectral Layer Pairs Input Reconstruction and Distillation
-
+<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" > | <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" />
+---|---
+Top Layer Input Reconstruction and Distillation | All Layers Input Reconstruction and Distillation
+---|---
 <img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" /> | <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" />
 ---|---
 Spectral All Layers Input Reconstruction and Distillation | Spectral Layer Pairs Input Reconstruction and Distillation
