@@ -257,6 +257,10 @@ All Layers Input Reconstruction and Distillation
 ---|---
 Spectral All Layers Input Reconstruction and Distillation | Spectral Layer Pairs Input Reconstruction and Distillation
 
+<img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" /> | <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" />
+---|---
+Spectral All Layers Input Reconstruction and Distillation | Spectral Layer Pairs Input Reconstruction and Distillation
+
 
 TODO(sfenu3): spectral optimization objectives
 (search for "TODO(sfenu3"))
