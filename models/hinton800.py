@@ -62,3 +62,24 @@ def create_feed_dicts(temperature):
     feed_dicts['distill'][temperature] = 8.0
 
     return feed_dicts
+
+def load_model(sess, model_meta, model_checkpoint, output_size):
+    new_saver = tf.train.import_meta_graph(model_meta)
+    new_saver.restore(sess, model_checkpoint)
+
+    inputs = tf.get_collection('inputs')[0]
+    outputs = tf.get_collection('outputs')[0]
+    temperature = tf.get_collection('temperature')[0]
+
+    layer_activations = []
+    layer_activations.append((tf.get_collection('fc1')[0], 800))
+    layer_activations.append((tf.get_collection('fc2')[0], 800))
+    #  layer_activations.append((outputs, int(outputs.get_shape()[-1])))
+    # the above doesn't work because tensorflow 1.0 has a bug where restored
+    # variables have get_shape == <unknown>. So we just take the output_size
+    # from dataset. It's messier but it works.
+    layer_activations.append((outputs, output_size))
+
+    feed_dicts = create_feed_dicts(temperature)
+
+    return inputs, outputs, layer_activations, feed_dicts
