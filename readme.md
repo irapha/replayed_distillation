@@ -218,15 +218,16 @@ python viz/stats_viz.py \
     --student_stats=summaries/train_distilled_student/stats/activation_stats_train_distilled_student.npy
 ```
 
+You can also see what a sample from the top layer statistics looks like by running:
+```bash
+python viz/get_stats_sample.py --run_name=experiment
+```
 
 ## License
 MIT
 
 
-
-
 TODO(rapha):
-- random scrips and viz scripts
 - images
 
 TODO(sfenu3): spectral optimization objectives
