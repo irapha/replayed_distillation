@@ -199,24 +199,25 @@ python main.py --run_name=experiment --model=lenet \
 The `viz/` directory contains useful scripts you can run to visualize the saved
 statistics and optimized datasets.
 
-Printing top layer per class means and standard deviations
+- Print top layer per class means and standard deviations
 ```bash
 python viz/print_stats.py --run_name=experiment
 ```
 
-Vizualizing per-class and per-pixel means, as well as a randomly selected
+- Vizualize per-class and per-pixel means, as well as a randomly selected
 example of an optimized dataset.
-
-<div align="center">
-<img alt="Per-class and per-pixel means and randoms image" src="imgs/means_and_random.png" width="90%"/>
-</div>
 
 ```bash
 python viz/print_stats.py \
     --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment.npy
 ```
 
-Compare per-class, per-output normal distribution for both student and teacher.
+<div align="center">
+<img alt="Per-class and per-pixel means and randoms image" src="imgs/means_and_random.png" width="90%"/>
+</div>
+
+- Compare per-class, per-output normal distribution for both student and teacher.
+
 Note that this requires that you have run `compute_stats` on a distilled
 student model. You might also want to play with the script to make each subplot
 zoomed in the best area (or apply a softmax over each mean/stddev pair of the
@@ -227,7 +228,7 @@ python viz/stats_viz.py \
     --student_stats=summaries/train_distilled_student/stats/activation_stats_train_distilled_student.npy
 ```
 
-You can also see what a sample from the top layer statistics looks like by running:
+- See what a sample from the top layer statistics looks like.
 ```bash
 python viz/get_stats_sample.py --run_name=experiment
 ```
@@ -241,32 +242,21 @@ paper, which will be published on arxiv soon. In the meantime, if this readme
 was not sufficient, here are some diagrams from the paper:
 
 <div align="center">
-<img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="50%"/>
+<img alt="Hinton's Knowledge Distillation Diagram" src="imgs/pure_distill.png" width="48%"/>
 Hinton's Knowledge Distillation
 </div>
 
 Top Layer Input Reconstruction and Distillation
 <div align="center">
-<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" width="50%"/> <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" width="50%"/>
+<img alt="Top Layer Input Reconstruction and Distillation Diagram" src="imgs/top_layer.png" width="43%"/> <img alt="All Layers Input Reconstruction and Distillation Diagram" src="imgs/all_layers.png" width="56%"/>
 </div>
 
 All Layers Input Reconstruction and Distillation
-<div align="center">
 
-</div>
+<img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" width="49.6%"/> | <img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" width="49.6%"/>
+---|---
+Spectral All Layers Input Reconstruction and Distillation | Spectral Layer Pairs Input Reconstruction and Distillation
 
-Spectral All Layers Input Reconstruction and Distillation
-<div align="center">
-<img alt="Spectral All Layers Input Reconstruction and Distillation Diagram" src="imgs/spectral_all_layers.png" width="50%"/>
-</div>
-
-Spectral Layer Pairs Input Reconstruction and Distillation
-<div align="center">
-<img alt="Spectral Layer Pairs Input Reconstruction and Distillation Diagram" src="imgs/spectral_layer_pairs.png" width="50%"/>
-</div>
-
-TODO(rapha):
-- images
 
 TODO(sfenu3): spectral optimization objectives
 (search for "TODO(sfenu3"))
