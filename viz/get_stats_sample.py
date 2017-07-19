@@ -18,7 +18,7 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
-all_stats = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
+all_stats, _ = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
     'activation_stats_{}.npy'.format(FLAGS.run_name)))[()]
 
 # TODO(sfenu3): if you modify what stats are being saved in compute_stats

@@ -9,7 +9,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('run_name', '', 'The name of the experimental run')
 flags.DEFINE_string('summary_folder', 'summaries/', 'Folder where summaries, logs, stats, optimized_datasets are saved')
 
-all_stats = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
+all_stats, _ = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
     'activation_stats_{}.npy'.format(FLAGS.run_name)))[()]
 
 # TODO(sfenu3): if you modify what stats are being saved in compute_stats
