@@ -28,9 +28,10 @@ class top_layer:
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        layerwise_stats, _ = stats
         if not feed_dicts: feed_dict = {}
         else: feed_dict = feed_dicts['distill']
-        top_layer_stats = stats[-1]
+        top_layer_stats = layerwise_stats[-1]
         sampled_values = sample_from_stats(top_layer_stats, clas, batch_size, self.top_layer_size)
         feed_dict[self.top_layer_placeholder] = sampled_values
         return feed_dict
@@ -59,9 +60,10 @@ class all_layers:
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        layerwise_stats, _ = stats
         if not feed_dicts: feed_dict = {}
         else: feed_dict = feed_dicts['distill']
-        for stat, placeholder, size in zip(stats, self.layer_placeholders, self.layer_sizes):
+        for stat, placeholder, size in zip(layerwise_stats, self.layer_placeholders, self.layer_sizes):
             sampled_values = sample_from_stats(stat, clas, batch_size, size)
             feed_dict[placeholder] = sampled_values
         return feed_dict
@@ -90,9 +92,10 @@ class all_layers_dropout:
         self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        layerwise_stats, _ = stats
         if not feed_dicts: feed_dict = {}
         else: feed_dict = feed_dicts['distill_dropout']
-        for stat, placeholder, size in zip(stats, self.layer_placeholders, self.layer_sizes):
+        for stat, placeholder, size in zip(layerwise_stats, self.layer_placeholders, self.layer_sizes):
             sampled_values = sample_from_stats(stat, clas, batch_size, size)
             feed_dict[placeholder] = sampled_values
         return feed_dict

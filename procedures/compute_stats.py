@@ -16,11 +16,15 @@ def run(sess, f, data):
     inputs, _, layer_activations, feed_dicts = m.get(f.model).load_model(sess, f.model_meta, f.model_checkpoint, output_size)
 
     with sess.as_default():
-        all_stats = [] # in order, from bottom to topmost activation
+        layerwise_stats = [] # in order, from bottom to topmost activation
         for layer_activation, size in layer_activations:
             print('computing stats for {}'.format(layer_activation))
-            stats = compute_class_statistics(sess, layer_activation, size, inputs, data, feed_dicts)
-            all_stats.append(stats)
+            stats = compute_layerwise_statistics(sess, layer_activation, size, inputs, data, feed_dicts)
+            layerwise_stats.append(stats)
+
+        all_layers_stats = you_method() # TODO(sfenu3)
+
+        all_stats = layerwise_stats, all_layers_stats
 
     stats_dir = os.path.join(f.summary_folder, f.run_name, 'stats')
     u.ensure_dir_exists(stats_dir)
@@ -28,7 +32,7 @@ def run(sess, f, data):
     np.save(stats_file, all_stats)
     print('stats saved in {}'.format(stats_file))
 
-def compute_class_statistics(sess, tensor, size, inputs, data, feed_dicts):
+def compute_layerwise_statistics(sess, tensor, size, inputs, data, feed_dicts):
     # compute activations for all examples in train set, organized by class
     all_activations = {}
     for batch_x, batch_y in data.train_epoch_in_batches(50):
