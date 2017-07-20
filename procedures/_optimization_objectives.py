@@ -117,16 +117,72 @@ def _get_dropout_filter(shape, keep_prob):
 
 
 class spectral_all_layers:
-    def __init__(self):
-        raise NotImplemented('TODO(sfenu3): implement. also see sample_from_stats()')
+    def __init__(self, layer_activations):
+        self.layer_placeholders = []
+        self.layer_sizes = []
+        recreate_loss = 0.0
+        for tensor, size in layer_activations:
+            placeholder = tf.placeholder(tf.float32, [None, size],
+                    name='{}_placeholder'.format(get_name(tensor)))
+            self.layer_placeholders.append(placeholder)
+            self.layer_sizes.append(size)
+
+            recreate_loss += (1.0 / size) * tf.reduce_mean(
+                    tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
+
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+
+    def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        layerwise_stats, graphwise_stats = stats
+        if not feed_dicts: feed_dict = {}
+        else: feed_dict = feed_dicts['distill']
+        for stat, placeholder, size in zip(layerwise_stats, self.layer_placeholders, self.layer_sizes):
+            sampled_values = sample_from_stats(stat, clas, batch_size, size)
+            feed_dict[placeholder] = sampled_values
+        return feed_dict
+
+    def reinitialize_dropout_filters(self, sess, dropout_filters):
+        # in this objective, we assign the fixed dropout filters to be arrays
+        # of ones (identity). Since the model was trained with dropout, we set
+        # the layer-wise rescale factor to be the keep_prob of that layer (this
+        # is done by using the 'distill' feed_dict, in sample_from_stats)
+        for filter_place, filter_assign_op, shape, _ in dropout_filters:
+            sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 class spectral_layer_pairs:
-    def __init__(self):
-        raise NotImplemented('TODO(sfenu3): implement. also see sample_from_stats()')
+    def __init__(self, layer_activations):
+        self.layer_placeholders = []
+        self.layer_sizes = []
+        recreate_loss = 0.0
+
+        for tensor, size in layer_activations:
+            placeholder = tf.placeholder(tf.float32, [None, size],
+                    name='{}_placeholder'.format(get_name(tensor)))
+            self.layer_placeholders.append(placeholder)
+            self.layer_sizes.append(size)
+
+            recreate_loss += (1.0 / size) * tf.reduce_mean(
+                    tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+
+    def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
+        layerwise_stats, graphwise_stats = stats
+        if not feed_dicts: feed_dict = {}
+        else: feed_dict = feed_dicts['distill']
+        for stat, placeholder, size in zip(layerwise_stats, self.layer_placeholders, self.layer_sizes):
+            sampled_values = sample_from_stats(stat, clas, batch_size, size)
+            feed_dict[placeholder] = sampled_values
+        return feed_dict
+
+    def reinitialize_dropout_filters(self, sess, dropout_filters):
+        # in this objective, we assign the fixed dropout filters to be arrays
+        # of ones (identity). Since the model was trained with dropout, we set
+        # the layer-wise rescale factor to be the keep_prob of that layer (this
+        # is done by using the 'distill' feed_dict, in sample_from_stats)
+        for filter_place, filter_assign_op, shape, _ in dropout_filters:
+            sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 def sample_from_stats(stats, clas, batch_size, out_size):
-    # TODO(sfenu3): if you modify what stats are being saved in compute_stats
-    # procedure, modify the line below too.
     means, cov, stddev, shape = stats
     out_size = means[list(means.keys())[0]].shape[0]
     gauss = np.random.normal(size=(batch_size, out_size))

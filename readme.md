@@ -22,7 +22,7 @@ be on arxiv soon! In the meantime, you can feel free to read the
 [poster](raphagl.com/research/NeuralNetworkKnowledgeDistillationWithNoTrainingData.pdf)
 for this work, or contact me with any questions.
 
-| [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu TODO(sfenu3): whore urself |
+| [Raphael Gontijo Lopes](http://raphagl.com) | Stefano Fenu |
 |---|---|
 
 ## Overview
@@ -288,6 +288,5 @@ was not sufficient, here are some diagrams from the paper:
 </table>
 
 
-TODO(sfenu3): spectral optimization objectives
-(search for "TODO(sfenu3"))
+TODO(sfenu3): accelerate spectral optimization objectives
 
