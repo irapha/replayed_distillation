@@ -203,12 +203,12 @@ python main.py --run_name=experiment --model=lenet \
 The `viz/` directory contains useful scripts you can run to visualize the saved
 statistics and optimized datasets.
 
-- Print top layer per class means and standard deviations
+#### Print top layer per class means and standard deviations
 ```bash
 python viz/print_stats.py --run_name=experiment
 ```
 
-- Vizualize per-class and per-pixel means, as well as a randomly selected
+#### Vizualize per-class and per-pixel means, as well as a randomly selected
 example of an optimized dataset.
 
 ```bash
@@ -220,7 +220,7 @@ python viz/print_stats.py \
 <img alt="Per-class and per-pixel means and randoms image" src="imgs/means_and_random.png" width="90%"/>
 </div>
 
-- Compare per-class, per-output normal distribution for both student and teacher.
+#### Compare per-class, per-output normal distribution for both student and teacher.
 
 Note that this requires that you have run `compute_stats` on a distilled
 student model. You might also want to play with the script to make each subplot
@@ -232,7 +232,7 @@ python viz/stats_viz.py \
     --student_stats=summaries/train_distilled_student/stats/activation_stats_train_distilled_student.npy
 ```
 
-- See what a sample from the top layer statistics looks like.
+#### See what a sample from the top layer statistics looks like.
 ```bash
 python viz/get_stats_sample.py --run_name=experiment
 ```
