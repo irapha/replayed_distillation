@@ -17,14 +17,17 @@ def run(sess, f, data):
 
     with sess.as_default():
         layerwise_stats = [] # in order, from bottom to topmost activation
-        
+
         for layer_activation, size in layer_activations:
             print('computing stats for {}'.format(layer_activation))
             stats = compute_layerwise_statistics(sess, layer_activation, size, inputs, data, feed_dicts)
             layerwise_stats.append(stats)
-        
-        print('computing stats for entire network')
-        all_layers_stats = compute_graphwise_statistics(sess, layer_activations, inputs, data, feed_dicts)
+
+        if f.compute_graphwise_stats:
+            print('computing stats for entire network')
+            all_layers_stats = compute_graphwise_statistics(sess, layer_activations, inputs, data, feed_dicts)
+        else:
+            all_layers_stats = None
 
         all_stats = layerwise_stats, all_layers_stats
 
@@ -76,7 +79,7 @@ def compute_graphwise_statistics(sess, tensors, inputs, data, feed_dicts):
     # compute activations for all examples in train set, organized by class
     all_activations = {}
     activations, sizes = map(list, zip(*tensors))
-    
+
     total_edges = sum(sizes)
 
     activation_graphs = {}
@@ -92,10 +95,10 @@ def compute_graphwise_statistics(sess, tensors, inputs, data, feed_dicts):
                 classes |= set([clas])
                 if tensor not in all_activations.keys():
                     all_activations[tensor] = {}
-                
+
                 if clas not in all_activations[tensor].keys():
                     all_activations[tensor][clas] = []
-                
+
                 all_activations[tensor][clas].append(act)
 
     # consolidate them each of the class' activations
@@ -111,7 +114,7 @@ def compute_graphwise_statistics(sess, tensors, inputs, data, feed_dicts):
     for clas in classes:
         for i in range(len(sizes) - 1):
             edge_a, edge_b = sizes[i], sizes[i+1]
-            
+
             col_index += edge_a
             mean = np.outer(means[tensors[i][0]][clas], means[tensors[i+1][0]][clas])
 
@@ -123,7 +126,7 @@ def compute_graphwise_statistics(sess, tensors, inputs, data, feed_dicts):
 
     tensor_reconstructions = {}
     pairwise_tensor_reconstructions = {c:[] for c in classes}
-    
+
     for clas in classes:
         _, inverse_fourier_matrix = scipy.linalg.schur(activation_graphs[clas])
         fourier_matrix = scipy.linalg.inv(inverse_fourier_matrix)
@@ -142,7 +145,7 @@ def compute_graphwise_statistics(sess, tensors, inputs, data, feed_dicts):
 
             end_index = int(len(spetrum_coefficients) * downscale_factor)
             subsampled_spectrum[:end_index] = spectrum[:end_index]
-            
+
             pairwise_tensor_reconstructions[clas].append(np.matrix(inverse_fourier_matrix) * np.matrix(pairwise_activation_graphs[clas][pair]))
 
     return reconstructions, pairwise_reconstructions, shape

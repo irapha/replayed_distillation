@@ -34,6 +34,11 @@ flags.DEFINE_string('model_meta', '', 'The meta graphdef file for the saved mode
 flags.DEFINE_string('model_checkpoint', '', 'The checkpoint to restore the graph from.')
 # e.g.: summaries/test_train_works/checkpoint/hinton1200-8000
 
+# the following is only used when computing statistics. graphwise_stats are
+# computationaly expensive, and are only needed for spectral
+# optimization_objectives, so we only compute them when the flag is set.
+flags.DEFINE_boolean('compute_graphwise_stats', False, 'Whether to compute graphwise statistics (needed for spectral optimization objectives)')
+
 # the following is only used for when optimizing a new dataset
 flags.DEFINE_string('optimization_objective', '', 'top_layer, all_layers, all_layers_dropout, spectral_all_layers, spectral_layer_pairs')
 

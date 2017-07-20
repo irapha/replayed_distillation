@@ -134,6 +134,10 @@ class spectral_all_layers:
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, graphwise_stats = stats
+        if not graphwise_stats:
+            raise AttributeError("Looks like you ran compute_stats without the" +
+                                 "flag --compute_graphwise_stats, which is needed for" +
+                                 "spectral optimization objectives.")
         if not feed_dicts: feed_dict = {}
         else: feed_dict = feed_dicts['distill']
         for stat, placeholder, size in zip(layerwise_stats, self.layer_placeholders, self.layer_sizes):
@@ -167,6 +171,10 @@ class spectral_layer_pairs:
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, graphwise_stats = stats
+        if not graphwise_stats:
+            raise AttributeError("Looks like you ran compute_stats without the" +
+                                 "flag --compute_graphwise_stats, which is needed for" +
+                                 "spectral optimization objectives.")
         if not feed_dicts: feed_dict = {}
         else: feed_dict = feed_dicts['distill']
         for stat, placeholder, size in zip(layerwise_stats, self.layer_placeholders, self.layer_sizes):

@@ -89,7 +89,11 @@ are the "metadata" mentioned in the paper, which we save so we can reconstruct
 a dataset representative of the original one.
 
 The `model_meta` and `model_checkpoint` flags are required because the
-`compute_stats` procedure loads a pre-trained model.
+`compute_stats` procedure loads a pre-trained model. If you are planning on
+optimizing a dataset with a spectral optimization objective, you need to
+compute stats with the flag `compute_graphwise_stats=True`. The reason why this
+is not done by default is because graphwise statistics are computationally
+expensive.
 
 ```bash
 python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
