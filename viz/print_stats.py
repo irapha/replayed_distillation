@@ -12,8 +12,6 @@ flags.DEFINE_string('summary_folder', 'summaries/', 'Folder where summaries, log
 all_stats, _ = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
     'activation_stats_{}.npy'.format(FLAGS.run_name)))[()]
 
-# TODO(sfenu3): if you modify what stats are being saved in compute_stats
-# procedure, modify the line below too.
 means, _, stddev, shape = all_stats[-1]
 
 print('statistics for top layer shape=(?, {})'.format(shape))

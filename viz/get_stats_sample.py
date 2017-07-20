@@ -21,8 +21,6 @@ def softmax(x):
 all_stats, _ = np.load(os.path.join(FLAGS.summary_folder, FLAGS.run_name, 'stats',
     'activation_stats_{}.npy'.format(FLAGS.run_name)))[()]
 
-# TODO(sfenu3): if you modify what stats are being saved in compute_stats
-# procedure, modify the line below too.
 means, _, stddev, _ = all_stats[-1]
 
 print("sample from top layer statistics, class=8, batch_size=1, num_classes=10, temperature=1, softmax=True")

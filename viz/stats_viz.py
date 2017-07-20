@@ -10,8 +10,6 @@ flags.DEFINE_string('student_stats', '', 'The saved statistics of the student mo
 flags.DEFINE_string('teacher_stats', '', 'The saved statistics of the teacher model on the original dataset')
 
 
-# TODO(sfenu3): if you modify what stats are being saved in compute_stats
-# procedure, modify the line below too.
 s_mean, _, s_sdev, _ = np.load(FLAGS.student_stats)[()][0][-1]
 t_mean, _, t_sdev, _ = np.load(FLAGS.teacher_stats)[()][0][-1]
 
