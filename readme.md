@@ -110,7 +110,8 @@ These samples and the corresponding objective loss can take different forms
 (`top_layer`, `all_layers`, `all_layers_dropout`, `spectral_all_layers`, `spectral_layer_pairs`),
 which are discussed in the paper. Note that `all_layers_dropout` is meant for
 teacher models that are trained with dropout. Currently, we only provide
-`hinton1200` that does.
+`hinton1200` that does. Also note that spectral optimization objectives require
+that the `compute_graphwise_stats` be set when running `compute_stats`
 
 The pre-trained model is loaded, and a new graph is constructed using its saved
 weights, but as `tf.constant`. This ensures that the only thing being
