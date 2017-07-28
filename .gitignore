@@ -6,6 +6,8 @@ summaries_bkp/
 MNIST_data/
 stats/
 stats_old/
+datasets/CASIA-PalmprintV1/
+datasets/CASIA-PalmprintV1.zip
 
 # Created by https://www.gitignore.io/api/python
 
