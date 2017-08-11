@@ -55,7 +55,7 @@ def read_data_set(image_dir):
         ground_truth = np.zeros(class_count, dtype=np.float32)
         ground_truth[int(label)] = 1.0
 
-        breakpoint = int(len(examples) * 0.2)
+        breakpoint = int(len(examples) * 0.4)
 
         for example in examples[breakpoint:]:
             result['train']['images'].append(crop_rescale(imread(example)))
