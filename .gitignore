@@ -7,8 +7,11 @@ MNIST_data/
 stats/
 stats_old/
 CASIA-PalmprintV1/
-CASIA-FingerprintV5/
 CASIA-PalmprintV1.zip
+CASIA-FingerprintV5/
+CASIA-FingerprintV5.zip
+CroppedYale.zip
+CroppedYale/
 
 # Created by https://www.gitignore.io/api/python
 
