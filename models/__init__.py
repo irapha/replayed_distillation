@@ -12,5 +12,8 @@ def get(model_name):
     elif model_name == 'lenet_half':
         from . import lenet_half as d
         return d
+    elif model_name == 'vgg19':
+        from . import vgg19 as d
+        return d
     else:
         raise NotImplemented('This model not implemented yet')
