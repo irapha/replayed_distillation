@@ -8,7 +8,7 @@ from skimage.io import imread
 from utils import grouper
 
 
-class CASIAPalmRegionIterator(object):
+class CASIAFingerprintIterator(object):
 
     def __init__(self):
         self.og = read_data_set("CASIA-FingerprintV5/")
@@ -37,12 +37,15 @@ class CASIAPalmRegionIterator(object):
             yield zip(*batch)
 
 def read_data_set(image_dir):
+    """Loads the casia dataset, crops and rescales to 224x224, subtracts the
+    saved pixel means, shuffles and separates into train/test sets."""
     if not gfile.Exists(image_dir):
         raise Exception("Image directory '" + image_dir + "' not found.")
     base_classes = listdir(image_dir)
     class_count = len(base_classes)
     result = {'train': {'images': [], 'labels': []},
               'test': {'images': [], 'labels': []}}
+    pixel_means = np.load('datasets/casia_pixel_means.npy')
 
     for i, label in enumerate(base_classes):
         print('reading images for class {}/{}'.format(i + 1, class_count), end='\r')
@@ -58,11 +61,12 @@ def read_data_set(image_dir):
         breakpoint = int(len(examples) * 0.4)
 
         for example in examples[breakpoint:]:
-            result['train']['images'].append(crop_rescale(imread(example)))
+            result['train']['images'].append(crop_rescale(imread(example)) - pixel_means)
             result['train']['labels'].append(ground_truth)
 
+
         for example in examples[:breakpoint]:
-            result['test']['images'].append(crop_rescale(imread(example)))
+            result['test']['images'].append(crop_rescale(imread(example)) - pixel_means)
             result['test']['labels'].append(ground_truth)
     print('') # for the new line
     return result
@@ -75,3 +79,4 @@ def crop_rescale(image):
     image = resize(image, (224, 224), mode='constant')
     # finally, flatten it
     return np.reshape(image, (224*224,))
+
