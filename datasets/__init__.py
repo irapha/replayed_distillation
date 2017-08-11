@@ -15,6 +15,9 @@ def get(dataset_name):
     if dataset_name == 'mnist_conv':
         from . import mnist_conv as m
         return m.MNISTResizedIterator()
+    if dataset_name == 'casia':
+        from . import casia as c
+        return c.CASIAFingerprintIterator()
     else:
         from . import optimized_dataset as d
         return d.OptimizedDatasetIterator(dataset_name)
