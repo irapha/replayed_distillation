@@ -14,6 +14,7 @@ ExtendedYaleB/
 ExtendedYaleB.tar.bz2
 CroppedYale/
 CroppedYale.zip
+datasets/vgg19.npy
 
 # Created by https://www.gitignore.io/api/python
 

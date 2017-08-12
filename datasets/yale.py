@@ -40,7 +40,7 @@ class YaleFacesIterator(object):
     def read_preprocess(self, img):
         """Reads image path from image_lists, crops, rescales to 224x224,
         and subtracts the saved pixel means"""
-        return crop_rescale(imread(img)) - self.pixel_means
+        return crop_rescale(imread(img))# - self.pixel_means
 
 def read_data_set(image_dir):
     """Loads the yale dataset as image lists, shuffles and separates into

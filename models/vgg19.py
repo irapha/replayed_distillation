@@ -14,59 +14,61 @@ def create_model(inputs, output_size):
         # MAKE SURE INPUTS ARE 224x224 IMAGES, otherwise the layer size below is wrong!!!
         inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 1])
 
-    with tf.variable_scope('conv_pool_1'):
-        conv1_1 = convLayer(inputs_reshaped, 3, 3, 1, 1, 64, "conv1_1", layer_activations, 224*224*64)
-        conv1_2 = convLayer(conv1_1, 3, 3, 1, 1, 64, "conv1_2", layer_activations, 224*224*64)
-        pool1 = maxPoolLayer(conv1_2, 2, 2, 2, 2, "pool1")
+        with tf.variable_scope('conv_pool_1'):
+            conv1_1 = convLayer(inputs_reshaped, 3, 3, 1, 1, 64, "conv1_1", layer_activations, 224*224*64)
+            conv1_2 = convLayer(conv1_1, 3, 3, 1, 1, 64, "conv1_2", layer_activations, 224*224*64)
+            pool1 = maxPoolLayer(conv1_2, 2, 2, 2, 2, "pool1")
 
-    with tf.variable_scope('conv_pool_2'):
-        conv2_1 = convLayer(pool1, 3, 3, 1, 1, 128, "conv2_1", layer_activations, 112*112*128)
-        conv2_2 = convLayer(conv2_1, 3, 3, 1, 1, 128, "conv2_2", layer_activations, 112*112*128)
-        pool2 = maxPoolLayer(conv2_2, 2, 2, 2, 2, "pool2")
+        with tf.variable_scope('conv_pool_2'):
+            conv2_1 = convLayer(pool1, 3, 3, 1, 1, 128, "conv2_1", layer_activations, 112*112*128)
+            conv2_2 = convLayer(conv2_1, 3, 3, 1, 1, 128, "conv2_2", layer_activations, 112*112*128)
+            pool2 = maxPoolLayer(conv2_2, 2, 2, 2, 2, "pool2")
 
-    with tf.variable_scope('conv_pool_3'):
-        conv3_1 = convLayer(pool2, 3, 3, 1, 1, 256, "conv3_1", layer_activations, 56*56*256)
-        conv3_2 = convLayer(conv3_1, 3, 3, 1, 1, 256, "conv3_2", layer_activations, 56*56*256)
-        conv3_3 = convLayer(conv3_2, 3, 3, 1, 1, 256, "conv3_3", layer_activations, 56*56*256)
-        conv3_4 = convLayer(conv3_3, 3, 3, 1, 1, 256, "conv3_4", layer_activations, 56*56*256)
-        pool3 = maxPoolLayer(conv3_4, 2, 2, 2, 2, "pool3")
+        with tf.variable_scope('conv_pool_3'):
+            conv3_1 = convLayer(pool2, 3, 3, 1, 1, 256, "conv3_1", layer_activations, 56*56*256)
+            conv3_2 = convLayer(conv3_1, 3, 3, 1, 1, 256, "conv3_2", layer_activations, 56*56*256)
+            conv3_3 = convLayer(conv3_2, 3, 3, 1, 1, 256, "conv3_3", layer_activations, 56*56*256)
+            conv3_4 = convLayer(conv3_3, 3, 3, 1, 1, 256, "conv3_4", layer_activations, 56*56*256)
+            pool3 = maxPoolLayer(conv3_4, 2, 2, 2, 2, "pool3")
 
-    with tf.variable_scope('conv_pool_4'):
-        conv4_1 = convLayer(pool3, 3, 3, 1, 1, 512, "conv4_1", layer_activations, 28*28*512)
-        conv4_2 = convLayer(conv4_1, 3, 3, 1, 1, 512, "conv4_2", layer_activations, 28*28*512)
-        conv4_3 = convLayer(conv4_2, 3, 3, 1, 1, 512, "conv4_3", layer_activations, 28*28*512)
-        conv4_4 = convLayer(conv4_3, 3, 3, 1, 1, 512, "conv4_4", layer_activations, 28*28*512)
-        pool4 = maxPoolLayer(conv4_4, 2, 2, 2, 2, "pool4")
+        with tf.variable_scope('conv_pool_4'):
+            conv4_1 = convLayer(pool3, 3, 3, 1, 1, 512, "conv4_1", layer_activations, 28*28*512)
+            conv4_2 = convLayer(conv4_1, 3, 3, 1, 1, 512, "conv4_2", layer_activations, 28*28*512)
+            conv4_3 = convLayer(conv4_2, 3, 3, 1, 1, 512, "conv4_3", layer_activations, 28*28*512)
+            conv4_4 = convLayer(conv4_3, 3, 3, 1, 1, 512, "conv4_4", layer_activations, 28*28*512)
+            pool4 = maxPoolLayer(conv4_4, 2, 2, 2, 2, "pool4")
 
-    with tf.variable_scope('conv_pool_5'):
-        conv5_1 = convLayer(pool4, 3, 3, 1, 1, 512, "conv5_1", layer_activations, 14*14*512)
-        conv5_2 = convLayer(conv5_1, 3, 3, 1, 1, 512, "conv5_2", layer_activations, 14*14*512)
-        conv5_3 = convLayer(conv5_2, 3, 3, 1, 1, 512, "conv5_3", layer_activations, 14*14*512)
-        conv5_4 = convLayer(conv5_3, 3, 3, 1, 1, 512, "conv5_4", layer_activations, 14*14*512)
-        pool5 = maxPoolLayer(conv5_4, 2, 2, 2, 2, "pool5")
+        with tf.variable_scope('conv_pool_5'):
+            conv5_1 = convLayer(pool4, 3, 3, 1, 1, 512, "conv5_1", layer_activations, 14*14*512)
+            conv5_2 = convLayer(conv5_1, 3, 3, 1, 1, 512, "conv5_2", layer_activations, 14*14*512)
+            conv5_3 = convLayer(conv5_2, 3, 3, 1, 1, 512, "conv5_3", layer_activations, 14*14*512)
+            conv5_4 = convLayer(conv5_3, 3, 3, 1, 1, 512, "conv5_4", layer_activations, 14*14*512)
+            pool5 = maxPoolLayer(conv5_4, 2, 2, 2, 2, "pool5")
 
-    with tf.variable_scope('fc_6'):
-        fcIn = tf.reshape(pool5, [-1, 7*7*512])
-        fc6 = fcLayer(fcIn, 7*7*512, 4096, True, "fc6", layer_activations)
-        dropout1 = dropout(fc6, keep_prob)
+        with tf.variable_scope('fc_6'):
+            fcIn = tf.reshape(pool5, [-1, 7*7*512])
+            fc6 = fcLayer(fcIn, 7*7*512, 4096, True, "fc6", layer_activations)
+            dropout1 = dropout(fc6, keep_prob)
 
-    with tf.variable_scope('fc_7'):
-        fc7 = fcLayer(dropout1, 4096, 4096, True, "fc7", layer_activations)
-        dropout2 = dropout(fc7, keep_prob)
+        with tf.variable_scope('fc_7'):
+            fc7 = fcLayer(dropout1, 4096, 4096, True, "fc7", layer_activations)
+            dropout2 = dropout(fc7, keep_prob)
 
-    with tf.variable_scope('fc_8'):
-        # need to do temperature here, so can't call the helper function
-        with tf.variable_scope("fc8") as scope:
-            w = tf.get_variable("w", shape=[4096, output_size], dtype="float")
-            b = tf.get_variable("b", [output_size], dtype="float")
-            out = tf.matmul(dropout2, w) + b
+        with tf.variable_scope('fc_8'):
+            # need to do temperature here, so can't call the helper function
+            with tf.variable_scope("fc8") as scope:
+                w = tf.Variable(
+                        tf.truncated_normal(shape=[4096, output_size], stddev=np.sqrt(2.0/4096)),
+                        name='fc8_w')
+                b = tf.Variable(tf.constant(0.01, shape=[output_size]), name='fc8_b')
+                out = tf.matmul(dropout2, w) + b
 
-            tf.add_to_collection('{}_w'.format(scope.name), w)
-            tf.add_to_collection('{}_b'.format(scope.name), b)
+                tf.add_to_collection('fc8_w', w)
+                tf.add_to_collection('fc8_b', b)
 
-        with tf.variable_scope("temperature"):
-            out_soft = tf.div(out, temperature)
-            layer_activations.append((out_soft, output_size))
+            with tf.variable_scope("temperature"):
+                out_soft = tf.div(out, temperature)
+                layer_activations.append((out_soft, output_size))
 
     tf.add_to_collection('inputs', inputs)
     tf.add_to_collection('outputs', out_soft)
@@ -79,7 +81,7 @@ def create_model(inputs, output_size):
 
 
 ### HELPER FUNCTIONS START ###
-def maxPoolLayer(x, kHeight, kWidth, strideX, strideY, name, padding = "SAME"):
+def maxPoolLayer(x, kHeight, kWidth, strideX, strideY, name, padding="SAME"):
     return tf.nn.max_pool(x, ksize=[1, kHeight, kWidth, 1],
             strides=[1, strideX, strideY, 1], padding=padding, name=name)
 
@@ -89,9 +91,9 @@ def dropout(x, keepPro, name=None):
 def fcLayer(x, inputD, outputD, reluFlag, name, layer_activations):
     with tf.variable_scope(name) as scope:
         w = tf.Variable(
-                tf.truncated_normal(shape=[inputD, outputD], stddev=0.01),
+                tf.truncated_normal(shape=[inputD, outputD], stddev=np.sqrt(2.0/inputD)),
                 name='{}_w'.format(name))
-        b = tf.Variable(tf.ones([outputD]) * 0.1, name='{}_b'.format(name))
+        b = tf.Variable(tf.constant(0.01, shape=[outputD]), name='{}_b'.format(name))
         out = tf.matmul(x, w) + b
 
         tf.add_to_collection('{}_w'.format(name), w)
@@ -109,11 +111,10 @@ def convLayer(x, kHeight, kWidth, strideX, strideY,
     channel = int(x.get_shape()[-1])
     with tf.variable_scope(name) as scope:
         w = tf.Variable(
-                tf.truncated_normal([kHeight, kWidth, channel, featureNum], stddev=0.01),
+                tf.truncated_normal([kHeight, kWidth, channel, featureNum], stddev=np.sqrt(2.0/(kHeight*kWidth*channel))),
                 name='{}_w'.format(name))
-        b = tf.Variable(tf.ones([featureNum]) * 0.1, name='{}_b'.format(name))
-        featureMap = tf.nn.conv2d(x, w, strides=[1, strideY, strideX, 1], padding=padding)
-        out = tf.nn.bias_add(featureMap, b)
+        b = tf.Variable(tf.constant(0.01, shape=[featureNum]), name='{}_b'.format(name))
+        out = tf.nn.conv2d(x, w, strides=[1, strideY, strideX, 1], padding=padding) + b
 
         tf.add_to_collection('{}_w'.format(name), w)
         tf.add_to_collection('{}_b'.format(name), b)
