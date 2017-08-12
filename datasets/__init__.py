@@ -18,6 +18,9 @@ def get(dataset_name):
     if dataset_name == 'casia':
         from . import casia as c
         return c.CASIAFingerprintIterator()
+    if dataset_name == 'yale':
+        from . import yale as y
+        return y.YaleFacesIterator()
     else:
         from . import optimized_dataset as d
         return d.OptimizedDatasetIterator(dataset_name)
