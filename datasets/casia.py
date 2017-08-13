@@ -12,7 +12,6 @@ class CASIAFingerprintIterator(object):
 
     def __init__(self):
         self.og = read_data_set("CASIA-FingerprintV5/")
-        self.pixel_means = np.load('datasets/casia_pixel_means.npy')
 
     @property
     def io_shape(self):
@@ -40,7 +39,7 @@ class CASIAFingerprintIterator(object):
     def read_preprocess(self, img):
         """Reads image path from image_lists, crops, rescales to 224x224,
         and subtracts the saved pixel means"""
-        return crop_rescale(imread(img)) - self.pixel_means
+        return crop_rescale(imread(img))# - self.pixel_means
 
 def read_data_set(image_dir):
     """Loads the casia dataset as image lists, shuffles and separates into
