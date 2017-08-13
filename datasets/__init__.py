@@ -21,6 +21,9 @@ def get(dataset_name):
     if dataset_name == 'yale':
         from . import yale as y
         return y.YaleFacesIterator()
+    if dataset_name == 'celeba':
+        from . import celeba as c
+        return c.CelebAFacesIterator()
     else:
         from . import optimized_dataset as d
         return d.OptimizedDatasetIterator(dataset_name)
