@@ -12,7 +12,7 @@ def create_model(inputs, output_size):
         temperature = tf.placeholder(tf.float32, name='temperature')
 
         # MAKE SURE INPUTS ARE 224x224 IMAGES, otherwise the layer size below is wrong!!!
-        inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 1])
+        inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 3])
 
         with tf.variable_scope('conv_pool_1'):
             conv1_1 = convLayer(inputs_reshaped, 3, 3, 1, 1, 64, "conv1_1", layer_activations, 224*224*64)
