@@ -16,8 +16,8 @@ def run(sess, f, data):
     outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
     labels = tf.placeholder(tf.float32, [None, output_size], name='labels')
-    loss, train_step = create_train_ops(outputs, labels)
-    accuracy = create_eval_ops(outputs, labels)
+    loss, train_step = create_train_ops(outputs, labels, loss=f.loss)
+    accuracy = create_eval_ops(outputs, labels, loss=f.loss)
     summary_op = create_summary_ops(loss, accuracy)
 
     # only initialize non-initialized vars:
@@ -72,20 +72,28 @@ def run(sess, f, data):
 
     print('saved model at {}'.format(saved_file))
 
-def create_train_ops(h, labels, scope='train_ops'):
-    with tf.variable_scope('xent_' + scope):
-        loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+def create_train_ops(h, labels, scope='train_ops', loss='xent'):
+    if loss == 'xent':
+        with tf.variable_scope('xent_' + scope):
+            loss = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+    elif loss == 'mse':
+        with tf.variable_scope('mse_' + scope):
+            loss = tf.losses.mean_squared_error(labels=labels, predictions=tf.nn.relu(h))
 
     with tf.variable_scope('opt_' + scope):
         train_step = tf.train.AdamOptimizer().minimize(loss)
 
     return loss, train_step
 
-def create_eval_ops(y, y_, scope='train_ops'):
+def create_eval_ops(y, y_, scope='train_ops', loss='xent'):
     with tf.variable_scope('eval_' + scope):
-        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        if loss == 'xent':
+            correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        elif loss == 'mse':
+            correct_prediction = tf.equal(tf.sign(y), y_)
+            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return accuracy
 
 def create_summary_ops(loss, accuracy):
