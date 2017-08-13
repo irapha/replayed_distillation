@@ -12,7 +12,6 @@ class YaleFacesIterator(object):
 
     def __init__(self):
         self.og = read_data_set("ExtendedYaleB/")
-        self.pixel_means = np.load('datasets/yale_pixel_means.npy')
 
     @property
     def io_shape(self):
