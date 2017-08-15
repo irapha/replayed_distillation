@@ -77,6 +77,13 @@ def create_train_ops(h, labels, scope='train_ops', loss='xent'):
         with tf.variable_scope('xent_' + scope):
             loss = tf.reduce_mean(
                     tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+    elif loss == 'attrxent':
+        with tf.variable_scope('attrxent_' + scope):
+            # first reshape output to have one more dim with 2 attrs
+            h = tf.reshape(h, (-1, 2))
+            labels = tf.reshape(labels, (-1, 2))
+            loss = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_attrxent'))
     elif loss == 'mse':
         with tf.variable_scope('mse_' + scope):
             loss = tf.losses.mean_squared_error(labels=labels, predictions=tf.nn.relu(h))
@@ -89,6 +96,11 @@ def create_train_ops(h, labels, scope='train_ops', loss='xent'):
 def create_eval_ops(y, y_, scope='train_ops', loss='xent'):
     with tf.variable_scope('eval_' + scope):
         if loss == 'xent':
+            correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+            accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        elif loss == 'attrxent':
+            y = tf.reshape(y, (-1, 2))
+            y_ = tf.reshape(y_, (-1, 2))
             correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
         elif loss == 'mse':
