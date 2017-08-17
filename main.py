@@ -21,6 +21,8 @@ flags.DEFINE_string('model', '', 'hinton1200, hinton800, lenet, lenet_half')
 flags.DEFINE_integer('rng_seed', 42, 'RNG seed, fixed for consistency')
 flags.DEFINE_string('procedure', '', 'train, compute_stats, optimize_dataset, distill')
 flags.DEFINE_string('loss', 'xent', 'xent, mse, or attrxent')
+flags.DEFINE_string('lr', '0.001', 'learning rate')
+
 
 flags.DEFINE_integer('epochs', 10, 'Number of training epochs')
 flags.DEFINE_integer('train_batch_size', 64, 'number of examples to be used for training')

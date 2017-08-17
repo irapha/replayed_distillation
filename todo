@@ -1,0 +1,14 @@
+- i didnt let it subtract pixel means so it runs fast and lets me
+  see if it works so if it doesnt maybe put it back in
+CURRENT
+- learning rate is smaller on vgg celeba to see if that helps
+
+
+NEXT
+- start distillation or...
+- start imagenet pretrain exp.
+  small (0.0001) lr worked but overfit later on.
+  smaller (0.00001) overfit less, but didnt achieve higher acc
+
+- and if that fails go with cifar100.
+
