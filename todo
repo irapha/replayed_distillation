@@ -5,7 +5,7 @@ CURRENT
 
 
 NEXT
-- start distillation or...
+- start distillation (stefano is running on train_vgg_celeba_normalize01_smallerlr) 
 - start imagenet pretrain exp.
   small (0.0001) lr worked but overfit later on.
   smaller (0.00001) overfit less, but didnt achieve higher acc

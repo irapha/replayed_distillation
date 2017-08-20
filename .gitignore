@@ -16,6 +16,7 @@ CroppedYale/
 CroppedYale.zip
 datasets/vgg19.npy
 CelebA/
+train_vgg_celeba_normalize01_smallerlr.zip
 
 # Created by https://www.gitignore.io/api/python
 
