@@ -15,5 +15,8 @@ def get(model_name):
     elif model_name == 'vgg19':
         from . import vgg19 as d
         return d
+    elif model_name == 'vgg16':
+        from . import vgg16 as d
+        return d
     else:
         raise NotImplemented('This model not implemented yet')
