@@ -12,3 +12,8 @@ NEXT
 
 - and if that fails go with cifar100.
 
+NOTE:
+this was used for vgg celeba:
+python main.py --run_name=train_vgg_celeba_normalize01_smallerlr --model=vgg19 \
+    --dataset=celeba --procedure=train --eval_interval=3120 \
+    --checkpoint_interval=3120 --loss=attrxent --lr=0.00001
