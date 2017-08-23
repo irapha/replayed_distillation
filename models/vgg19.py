@@ -3,6 +3,7 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow.contrib.layers import flatten
+from tensorflow.python.tools import inspect_checkpoint
 
 def create_model(inputs, output_size):
     layer_activations = []
@@ -12,7 +13,7 @@ def create_model(inputs, output_size):
         temperature = tf.placeholder(tf.float32, name='temperature')
 
         # MAKE SURE INPUTS ARE 224x224 IMAGES, otherwise the layer size below is wrong!!!
-        inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 3])
+        inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 1])
 
         with tf.variable_scope('conv_pool_1'):
             conv1_1 = convLayer(inputs_reshaped, 3, 3, 1, 1, 64, "conv1_1", layer_activations, 224*224*64)
@@ -135,98 +136,176 @@ def convLayer(x, kHeight, kWidth, strideX, strideY,
 
 
 def load_model(sess, model_meta, model_checkpoint, output_size):
-    raise NotImplemented('TODO(rapha)')
-    #  new_saver = tf.train.import_meta_graph(model_meta)
-    #  new_saver.restore(sess, model_checkpoint)
+    new_saver = tf.train.import_meta_graph(model_meta)
+    new_saver.restore(sess, model_checkpoint)
+    
+    inputs = tf.get_collection('inputs')[0]
+    outputs = tf.get_collection('outputs')[0]
+    keep_prob = tf.get_collection('keep_prob')[0]
+    temperature = tf.get_collection('temperature')[0]
 
-    #  inputs = tf.get_collection('inputs')[0]
-    #  outputs = tf.get_collection('outputs')[0]
-    #  temperature = tf.get_collection('temperature')[0]
+    layer_activations = []
+    layer_activations.append((tf.get_collection('conv1_1')[0], 224*224*64))
+    layer_activations.append((tf.get_collection('conv1_2')[0], 224*224*64))
+    layer_activations.append((tf.get_collection('conv2_1')[0], 112*112*128))
+    layer_activations.append((tf.get_collection('conv2_2')[0], 112*112*128))
+    layer_activations.append((tf.get_collection('conv3_1')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv3_2')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv3_3')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv3_4')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv4_1')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv4_2')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv4_3')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv4_4')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv5_1')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('conv5_2')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('conv5_3')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('conv5_4')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('fc6')[0], 4096))
+    layer_activations.append((tf.get_collection('fc7')[0], 4096))
+    layer_activations.append((tf.get_collection('fc8_w')[0], output_size))
+    layer_activations.append((tf.get_collection('fc8_b')[0], output_size))
 
-    #  layer_activations = []
-    #  layer_activations.append((tf.get_collection('conv1')[0], 28*28*6))
-    #  layer_activations.append((tf.get_collection('conv2')[0], 10*10*16))
-    #  layer_activations.append((tf.get_collection('fc1')[0], 120))
-    #  layer_activations.append((tf.get_collection('fc2')[0], 84))
-    #  #  layer_activations.append((outputs, int(outputs.get_shape()[-1])))
-    #  # the above doesn't work because tensorflow 1.0 has a bug where restored
-    #  # variables have get_shape == <unknown>. So we just take the output_size
-    #  # from dataset. It's messier but it works.
-    #  layer_activations.append((outputs, output_size))
+    feed_dicts = create_feed_dicts(keep_prob, temperature)
 
-    #  feed_dicts = create_feed_dicts(temperature)
+    return inputs, outputs, layer_activations, feed_dicts
 
-    #  return inputs, outputs, layer_activations, feed_dicts
 
 def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size, output_size):
-    raise NotImplemented('TODO(rapha)')
-    #  new_saver = tf.train.import_meta_graph(model_meta)
-    #  new_saver.restore(sess, model_checkpoint)
-    #  temperature = tf.placeholder(tf.float32, name='temperature')
+    new_saver = tf.train.import_meta_graph(model_meta)
+    new_saver.restore(sess, model_checkpoint)
+    
+    with tf.variable_scope('vgg'):
+        keep_prob = tf.placeholder(tf.float32, name='keep_prob')
+        temperature = tf.placeholder(tf.float32, name='temperature')
 
-    #  layer_activations = []
+        # MAKE SURE INPUTS ARE 224x224 IMAGES, otherwise the layer size below is wrong!!!
+        inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 1])
 
-    #  with tf.variable_scope('lenet-5_const'):
+        with tf.variable_scope('conv_pool_1'):
+            conv1_1_w = tf.constant(sess.run(tf.get_collection('conv1_1_w')[0]), name='conv1_1_w')
+            conv1_1_b = tf.constant(sess.run(tf.get_collection('conv1_1_b')[0]), name='conv1_1_b')
+            conv1_1   = tf.nn.conv2d(inputs_reshaped, conv1_1_w, strides=[1,1,1,1], padding='SAME') + conv1_1_b
+            
+            conv1_2_w = tf.constant(sess.run(tf.get_collection('conv1_2_w')[0]), name='conv1_2_w')
+            conv1_2_b = tf.constant(sess.run(tf.get_collection('conv1_2_b')[0]), name='conv1_2_b')
+            conv1_2   = tf.nn.conv2d(conv1_1, conv1_2_w, strides=[1,1,1,1], padding='SAME') + conv1_2_b
 
-        #  # MAKE SURE INPUTS ARE 32x32 IMAGES, otherwise the layer size below is wrong!!!
-        #  inputs_reshaped = tf.reshape(inputs, [-1, 32, 32, 1])
+            pool1 = maxPoolLayer(conv1_2, 2,2,2,2, name="pool1")
 
-        #  with tf.variable_scope('conv1'):
-            #  conv1_w = tf.constant(sess.run(tf.get_collection('conv1_w')[0]), name='conv1_w')
-            #  conv1_b = tf.constant(sess.run(tf.get_collection('conv1_b')[0]), name='conv1_b')
-            #  conv1 = tf.nn.conv2d(inputs_reshaped, conv1_w, strides=[1,1,1,1], padding='VALID') + conv1_b
+        with tf.variable_scope('conv_pool_2'):
+            conv2_1_w = tf.constant(sess.run(tf.get_collection('conv2_1_w')[0]), name='conv2_1_w')
+            conv2_1_b = tf.constant(sess.run(tf.get_collection('conv2_1_b')[0]), name='conv2_1_b')
+            conv2_1   = tf.nn.conv2d(pool1, conv2_1_w, strides=[1,1,1,1], padding='SAME') + conv2_1_b
+            
+            conv2_2_w = tf.constant(sess.run(tf.get_collection('conv2_2_w')[0]), name='conv2_2_w')
+            conv2_2_b = tf.constant(sess.run(tf.get_collection('conv2_2_b')[0]), name='conv2_2_b')
+            conv2_2   = tf.nn.conv2d(conv2_1, conv2_2_w, strides=[1,1,1,1], padding='SAME') + conv2_2_b
+            
+            pool2 = maxPoolLayer(conv2_2, 2,2,2,2,  "pool2")
 
-            #  layer_activations.append((conv1, 28*28*6))
+        with tf.variable_scope('conv_pool_3'):
+             
+            conv3_1_w = tf.constant(sess.run(tf.get_collection('conv3_1_w')[0]), name='conv3_1_w')
+            conv3_1_b = tf.constant(sess.run(tf.get_collection('conv3_1_b')[0]), name='conv3_1_b')
+            conv3_1   = tf.nn.conv2d(pool2, conv3_1_w, strides=[1,1,1,1], padding='SAME') + conv3_1_b
+            
+            conv3_2_w = tf.constant(sess.run(tf.get_collection('conv3_2_w')[0]), name='conv3_2_w')
+            conv3_2_b = tf.constant(sess.run(tf.get_collection('conv3_2_b')[0]), name='conv3_2_b')
+            conv3_2   = tf.nn.conv2d(conv3_1, conv3_2_w, strides=[1,1,1,1], padding='SAME') + conv3_2_b
+            
+            conv3_3_w = tf.constant(sess.run(tf.get_collection('conv3_3_w')[0]), name='conv3_3_w')
+            conv3_3_b = tf.constant(sess.run(tf.get_collection('conv3_3_b')[0]), name='conv3_3_b')
+            conv3_3   = tf.nn.conv2d(conv3_2, conv3_3_w, strides=[1,1,1,1], padding='SAME') + conv3_3_b
+            
+            conv3_4_w = tf.constant(sess.run(tf.get_collection('conv3_4_w')[0]), name='conv3_4_w')
+            conv3_4_b = tf.constant(sess.run(tf.get_collection('conv3_4_b')[0]), name='conv3_4_b')
+            conv3_4   = tf.nn.conv2d(conv3_3, conv3_4_w, strides=[1,1,1,1], padding='SAME') + conv3_4_b
+            
+            pool3 = maxPoolLayer(conv3_4, 2, 2, 2, 2, "pool3")
 
-            #  conv1 = tf.nn.relu(conv1)
+        with tf.variable_scope('conv_pool_4'):
+            conv4_1_w = tf.constant(sess.run(tf.get_collection('conv4_1_w')[0]), name='conv4_1_w')
+            conv4_1_b = tf.constant(sess.run(tf.get_collection('conv4_1_b')[0]), name='conv4_1_b')
+            conv4_1   = tf.nn.conv2d(pool3, conv4_1_w, strides=[1,1,1,1], padding='SAME') + conv4_1_b
+            
+            conv4_2_w = tf.constant(sess.run(tf.get_collection('conv4_2_w')[0]), name='conv4_2_w')
+            conv4_2_b = tf.constant(sess.run(tf.get_collection('conv4_2_b')[0]), name='conv4_2_b')
+            conv4_2   = tf.nn.conv2d(conv4_1, conv4_2_w, strides=[1,1,1,1], padding='SAME') + conv4_2_b
+            
+            conv4_3_w = tf.constant(sess.run(tf.get_collection('conv4_3_w')[0]), name='conv4_3_w')
+            conv4_3_b = tf.constant(sess.run(tf.get_collection('conv4_3_b')[0]), name='conv4_3_b')
+            conv4_3   = tf.nn.conv2d(conv4_2, conv4_3_w, strides=[1,1,1,1], padding='SAME') + conv4_3_b
+            
+            conv4_4_w = tf.constant(sess.run(tf.get_collection('conv4_4_w')[0]), name='conv4_4_w')
+            conv4_4_b = tf.constant(sess.run(tf.get_collection('conv4_4_b')[0]), name='conv4_4_b')
+            conv4_4   = tf.nn.conv2d(conv4_3, conv4_4_w, strides=[1,1,1,1], padding='SAME') + conv4_4_b
+            pool4 = maxPoolLayer(conv4_4, 2, 2, 2, 2, "pool4")
 
-        #  with tf.variable_scope('pool1'):
-            #  pool_1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID')
+        with tf.variable_scope('conv_pool_5'):
+            conv5_1_w = tf.constant(sess.run(tf.get_collection('conv5_1_w')[0]), name='conv5_1_w')
+            conv5_1_b = tf.constant(sess.run(tf.get_collection('conv5_1_b')[0]), name='conv5_1_b')
+            conv5_1   = tf.nn.conv2d(pool4, conv5_1_w, strides=[1,1,1,1], padding='SAME') + conv5_1_b
+            
+            conv5_2_w = tf.constant(sess.run(tf.get_collection('conv5_2_w')[0]), name='conv5_2_w')
+            conv5_2_b = tf.constant(sess.run(tf.get_collection('conv5_2_b')[0]), name='conv5_2_b')
+            conv5_2   = tf.nn.conv2d(conv5_1, conv5_2_w, strides=[1,1,1,1], padding='SAME') + conv5_2_b
+            
+            conv5_3_w = tf.constant(sess.run(tf.get_collection('conv5_3_w')[0]), name='conv5_3_w')
+            conv5_3_b = tf.constant(sess.run(tf.get_collection('conv5_3_b')[0]), name='conv5_3_b')
+            conv5_3   = tf.nn.conv2d(conv5_2, conv5_3_w, strides=[1,1,1,1], padding='SAME') + conv5_3_b
 
-        #  with tf.variable_scope('conv2'):
-            #  conv2_w = tf.constant(sess.run(tf.get_collection('conv2_w')[0]), name='conv2_w')
-            #  conv2_b = tf.constant(sess.run(tf.get_collection('conv2_b')[0]), name='conv2_b')
-            #  conv2 = tf.nn.conv2d(pool_1, conv2_w, strides=[1,1,1,1], padding='VALID') + conv2_b
+            conv5_4_w = tf.constant(sess.run(tf.get_collection('conv5_4_w')[0]), name='conv5_4_w')
+            conv5_4_b = tf.constant(sess.run(tf.get_collection('conv5_4_b')[0]), name='conv5_4_b')
+            conv5_4   = tf.nn.conv2d(conv5_3, conv5_4_w, strides=[1,1,1,1], padding='SAME') + conv5_4_b
+            pool5 = maxPoolLayer(conv5_4, 2, 2, 2, 2, "pool5")
 
-            #  layer_activations.append((conv2, 10*10*16))
+        with tf.variable_scope('fc_6'):
+            fcIn = tf.reshape(pool5, [-1, 7*7*512])
+            fc6_w = tf.constant(sess.run(tf.get_collection('fc6_w')[0]), name='fc6_w')
+            fc6_b = tf.constant(sess.run(tf.get_collection('fc6_b')[0]), name='fc6_b')
+            fc6 = tf.matmul(fcIn, fc6_w) + fc6_b
+            
+            dropout1 = dropout(fc6, keep_prob)
 
-            #  conv2 = tf.nn.relu(conv2)
+        with tf.variable_scope('fc_7'):
 
-        #  with tf.variable_scope('pool2'):
-            #  pool_2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='VALID')
+            fc7_w = tf.constant(sess.run(tf.get_collection('fc7_w')[0]), name='fc7_w')
+            fc7_b = tf.constant(sess.run(tf.get_collection('fc7_b')[0]), name='fc7_b')
+            fc7 = tf.matmul(dropout1, fc7_w) + fc7_b
+            
+            dropout2 = dropout(fc7, keep_prob)
 
-        #  with tf.variable_scope('flatten'):
-            #  fc1 = flatten(pool_2)
+        with tf.variable_scope('fc_8'):
 
-        #  with tf.variable_scope('fc1'):
-            #  fc1_w = tf.constant(sess.run(tf.get_collection('fc1_w')[0]), name='fc1_w')
-            #  fc1_b = tf.constant(sess.run(tf.get_collection('fc1_b')[0]), name='fc1_b')
-            #  fc1 = tf.matmul(fc1,fc1_w) + fc1_b
-
-            #  layer_activations.append((fc1, 120))
-
-            #  fc1 = tf.nn.relu(fc1)
-
-        #  with tf.variable_scope('fc2'):
-            #  fc2_w = tf.constant(sess.run(tf.get_collection('fc2_w')[0]), name='fc2_w')
-            #  fc2_b = tf.constant(sess.run(tf.get_collection('fc2_b')[0]), name='fc2_b')
-            #  fc2 = tf.matmul(fc1,fc2_w) + fc2_b
-
-            #  layer_activations.append((fc2, 84))
-
-            #  fc2 = tf.nn.relu(fc2)
-
-        #  with tf.variable_scope('fc3'):
-            #  fc3_w = tf.constant(sess.run(tf.get_collection('fc3_w')[0]), name='fc3_w')
-            #  fc3_b = tf.constant(sess.run(tf.get_collection('fc3_b')[0]), name='fc3_b')
-            #  logits = tf.matmul(fc2, fc3_w) + fc3_b
-            #  logits = tf.div(logits, temperature)
-
-            #  layer_activations.append((logits, 10))
-
-    #  feed_dicts = {'distill': {temperature: 8.0}}
-
-    #  return logits, layer_activations, feed_dicts, []
+            fc8_w = tf.constant(sess.run(tf.get_collection('fc8_w')[0]), name='fc8_w')
+            fc8_b = tf.constant(sess.run(tf.get_collection('fc8_b')[0]), name='fc8_b')
+            logits = tf.matmul(dropout2, fc8_w) + fc8_b
+            logits = tf.div(logits, temperature)
+    
+    layer_activations = []
+    layer_activations.append((tf.get_collection('conv1_1')[0], 224*224*64))
+    layer_activations.append((tf.get_collection('conv1_2')[0], 224*224*64))
+    layer_activations.append((tf.get_collection('conv2_1')[0], 112*112*128))
+    layer_activations.append((tf.get_collection('conv2_2')[0], 112*112*128))
+    layer_activations.append((tf.get_collection('conv3_1')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv3_2')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv3_3')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv3_4')[0], 56*56*256))
+    layer_activations.append((tf.get_collection('conv4_1')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv4_2')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv4_3')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv4_4')[0], 28*28*512))
+    layer_activations.append((tf.get_collection('conv5_1')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('conv5_2')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('conv5_3')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('conv5_4')[0], 14*14*512))
+    layer_activations.append((tf.get_collection('fc6')[0], 4096))
+    layer_activations.append((tf.get_collection('fc7')[0], 4096))
+    layer_activations.append((tf.get_collection('fc8_w')[0], output_size))
+    layer_activations.append((tf.get_collection('fc8_b')[0], output_size))
+    feed_dicts = create_feed_dicts(keep_prob, temperature)
+    return logits, layer_activations, feed_dicts, []
 
 def create_feed_dicts(keep_prob, temperature):
     feed_dicts = {key: {} for key in ['train', 'eval', 'distill']}
