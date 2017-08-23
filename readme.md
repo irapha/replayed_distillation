@@ -62,6 +62,10 @@ Every artifact created will be saved under `summaries/`, the default
 datasets, log files with information about the experiment run, activation
 statistics, etc.
 
+On the newly added VGG11, 16 and 19 models, there is an option to initialize
+the layers with ImageNet pre-trained layers. You can get those `*.npy` files
+[here](https://github.com/machrisaa/tensorflow-vgg).
+
 ## Requirements
 This code requires that you have [tensorflow](https://tensorflow.org) 1.0 installed, along with `numpy`
 and `scikit-image 0.13.0` on python 3.6+.
