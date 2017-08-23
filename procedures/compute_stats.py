@@ -52,18 +52,27 @@ def compute_layerwise_statistics(sess, tensor, size, inputs, data, feed_dicts):
             if clas not in means:
                 means[clas] = (np.zeros(act.shape), 0)
                 stdev[clas] = (np.zeros(act.shape), np.zeros(act.shape), 0)
+                cov[clas]   = (np.zeros(act.shape), np.zeros(act.shape), np.zeros(act.shape), 0)
             means[clas] = (means[clas][0]+act, means[clas][1]+1)
             stdev[clas] = (stdev[clas][0]+act**2, stdev[clas][1]+act, stdev[clas][2]+1)
-    
+            
+            n = cov[clas][-1] + 1
+            dx = act - cov[clas][0]
+            meanx = cov[clas][0] + dx/n
+            meany = cov[clas][1] + (act.transpose() - cov[clas][1])/n
+            C = cov[clas][2] + dx * (act.transpose() - meany)
+            
+            cov[clas] = (meanx, meany, C, n)
+
     for key in means.keys():
         means[key] = means[key][0]/means[key][1]
 
     for key in stdev.keys():
         stdev[key] = np.sqrt(stdev[key][0]/stdev[key][2] - (stdev[key][1]/stdev[key][2])**2)
 
-    # TODO streaming covariance sketch from (Chi et al 2015)
-    cov = None
-
+    for key in cov.keys():
+        cov[key] = cov[clas][2]/cov[clas][-1]
+    
     # save the shape too. will be needed for later.
     batch_x, _ = next(data.train_epoch_in_batches(50))
     batch_out = sess.run(tensor, feed_dict={**feed_dicts['distill'], inputs: batch_x})
