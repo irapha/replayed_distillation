@@ -24,3 +24,21 @@ ba     --procedure=compute_stats     --model_meta summaries/train_vgg_celeba_nor
 l_checkpoint=summaries/train_vgg_celeba_normalize01_smallerlr/train/checkpoint/vgg19-24960
 
 summaries/train_vgg_celeba_normalize01_smallerlr/stats/activation_stats_train_vgg_celeba_normalize01_smallerlr.npy
+
+
+train AlexNet:
+python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
+  --dataset=celeba --procedure=train --eval_interval=3120 \
+  --checkpoint_interval=3120 --loss=attrxent --lr=0.00001
+
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr
+  --model=alex --dataset=celeba     --procedure=compute_stats \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960
+
+
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr
+  --model=alex --dataset=celeba     --procedure=optimize_dataset \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
+  --optimization_objective=top_layer
