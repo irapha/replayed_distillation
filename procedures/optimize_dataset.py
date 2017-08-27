@@ -49,8 +49,8 @@ def run(sess, f, data):
             # creating 100 batches for this class
             # the data is saved as a list of batches, each with batch_size = f.train_batch_size
             # each batch is saved as a tuple of (np.array of images, np.array of latent outputs)
-            for i in range(20):
-                print('batch {}/20'.format(i), end='\r')
+            for i in range(40):
+                print('batch {}/40'.format(i), end='\r')
                 # reinitialize graph
                 sess.run(reinit_op)
 

@@ -51,7 +51,7 @@ def compute_layerwise_statistics(sess, tensor, size, inputs, data, feed_dicts, l
         for act, y in zip(batch_out, batch_y):
             if lossform == "attrxent":
                 # many classes
-                classes = np.where(np.where(y == 1)[1] == 1)[0]
+                classes = np.where(np.where(np.reshape(y, (size/2, 2)) == 1)[1] == 1)[0]
             else:
                 classes = [np.where(y == 1)[0][0]] # label in dataset
 
