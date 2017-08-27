@@ -34,11 +34,13 @@ python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
 alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr
   --model=alex --dataset=celeba     --procedure=compute_stats \
   --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
-  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
+  --loss=attrxent
 
 
-alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
   --model=alex --dataset=celeba     --procedure=optimize_dataset \
   --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
   --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
-  --optimization_objective=top_layer
+  --optimization_objective=top_layer \
+  --loss=attrxent
