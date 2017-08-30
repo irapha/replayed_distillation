@@ -44,3 +44,11 @@ alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
   --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
   --optimization_objective=top_layer \
   --loss=attrxent
+
+
+python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
+  --dataset="summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy" \
+  --procedure=distill \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
+  --eval_dataset=celeba --student_model=alex_half --epochs=30 --loss=attrxent

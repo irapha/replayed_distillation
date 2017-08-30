@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from tensorflow.examples.tutorials.mnist import input_data
@@ -19,6 +20,11 @@ class OptimizedDatasetIterator(object):
         self.input_size = len(data_class_0[0][0])
         self.output_size = len(data_class_0[1][0][0])
 
+        data_dir = os.path.dirname(dataset_location)
+        file_name = dataset_location.split('/')[-1]
+        file_prefix = file_name[:file_name.index("<batch>")].replace('<clas>', '0')
+        self.num_batches = len([name for name in os.listdir(data_dir) if file_prefix in name])
+
     @property
     def io_shape(self):
         return self.input_size, self.output_size
@@ -26,7 +32,7 @@ class OptimizedDatasetIterator(object):
     def train_epoch_in_batches(self, _):
         classes_and_batches = [(clas_idx, batch_idx)
                 for clas_idx in range(self.io_shape[1])
-                for batch_idx  in range(len(self.data_optimized[0]))]
+                for batch_idx  in range(self.num_batches)]
         np.random.shuffle(classes_and_batches)
 
         for clas_idx, batch_idx in classes_and_batches:

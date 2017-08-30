@@ -21,5 +21,8 @@ def get(model_name):
     elif model_name == 'alex':
         from . import alex as d
         return d
+    elif model_name == 'alex_half':
+        from . import alex_half as d
+        return d
     else:
         raise NotImplemented('This model not implemented yet')
