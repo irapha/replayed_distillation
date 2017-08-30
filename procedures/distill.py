@@ -17,7 +17,7 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 
 def run(sess, f, data):
     # load data that will be used for evaluating the distillation process
-    eval_data = d.get(f.eval_dataset)
+    eval_data = d.get(f.eval_dataset, f)
 
     # load teacher graph
     _, output_size = data.io_shape

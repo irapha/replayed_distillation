@@ -65,7 +65,7 @@ if __name__ == '__main__':
     sess = tf.Session(config=u.get_sess_config(use_gpu=True))
 
     # initialize dataset interface
-    data = d.get(FLAGS.dataset)
+    data = d.get(FLAGS.dataset, f)
 
     # run procedure (this will create and train graphs, etc).
     p.get(FLAGS.procedure).run(sess, FLAGS, data)

@@ -1,5 +1,5 @@
 
-def get(dataset_name):
+def get(dataset_name, f):
     """ Returns a dataset object with easy interface.
 
     Interface:
@@ -26,4 +26,4 @@ def get(dataset_name):
         return c.CelebAFacesIterator()
     else:
         from . import optimized_dataset as d
-        return d.OptimizedDatasetIterator(dataset_name)
+        return d.OptimizedDatasetIterator(dataset_name, f)

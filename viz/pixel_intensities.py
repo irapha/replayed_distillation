@@ -60,7 +60,7 @@ cv2.destroyAllWindows()
 
 # re_means = means # calculated above
 
-# mnist = d.get(FLAGS.original_dataset)
+# mnist = d.get(FLAGS.original_dataset, f)
 # og_means = []
 # for clas in range(10):
     # idx = np.where(np.where(mnist.og.train.labels == 1)[1] == clas)[0]

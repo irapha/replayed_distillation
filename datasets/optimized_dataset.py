@@ -7,7 +7,7 @@ from utils import grouper
 
 class OptimizedDatasetIterator(object):
 
-    def __init__(self, dataset_location):
+    def __init__(self, dataset_location, f):
         self.dataset_location = dataset_location.replace('<clas>', '{}').replace('<batch>', '{}')
         # save ioshape
         data_class_0 = np.load(self.dataset_location.format(0, 0))[()]
@@ -19,6 +19,8 @@ class OptimizedDatasetIterator(object):
         # data_class_0[1][0][0] is the first latent in that batch of latents
         self.input_size = len(data_class_0[0][0])
         self.output_size = len(data_class_0[1][0][0])
+        if f.loss == 'attrxent':
+            self.output_size = self.output_size // 2
 
         data_dir = os.path.dirname(dataset_location)
         file_name = dataset_location.split('/')[-1]
