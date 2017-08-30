@@ -19,8 +19,7 @@ class OptimizedDatasetIterator(object):
         # data_class_0[1][0][0] is the first latent in that batch of latents
         self.input_size = len(data_class_0[0][0])
         self.output_size = len(data_class_0[1][0][0])
-        if f.loss == 'attrxent':
-            self.output_size = self.output_size // 2
+        self.flags = f
 
         data_dir = os.path.dirname(dataset_location)
         file_name = dataset_location.split('/')[-1]
@@ -32,8 +31,13 @@ class OptimizedDatasetIterator(object):
         return self.input_size, self.output_size
 
     def train_epoch_in_batches(self, _):
+        if self.flags.loss == 'attrxent':
+            output_size = self.output_size // 2
+        else:
+            output_size = self.output_size
+
         classes_and_batches = [(clas_idx, batch_idx)
-                for clas_idx in range(self.io_shape[1])
+                for clas_idx in range(output_size)
                 for batch_idx  in range(self.num_batches)]
         np.random.shuffle(classes_and_batches)
 
