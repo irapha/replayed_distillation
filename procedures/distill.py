@@ -27,7 +27,7 @@ def run(sess, f, data):
     # create student graph
     outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
-    loss, train_step = create_train_ops(outputs, labels, lr=f.lr, loss=f.loss)
+    loss, train_step = create_train_ops(outputs, teacher_outputs, lr=f.lr, loss=f.loss)
     accuracy = create_eval_ops(outputs, teacher_outputs)
     summary_op = create_summary_ops(loss, accuracy)
 
