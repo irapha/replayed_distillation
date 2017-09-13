@@ -11,12 +11,12 @@ from utils import grouper
 class CASIAFingerprintIterator(object):
 
     def __init__(self):
-        self.og = read_data_set("CASIA-FingerprintV5/")
+        self.og = read_data_set("datasets/CASIA-FingerprintV5/")
 
     @property
     def io_shape(self):
-        # read_preprocess crops and rescales each image to 224x224
-        return 224*224, 500
+        # read_preprocess crops and rescales each image to 448x448
+        return 448*448, 500
 
     def train_epoch_in_batches(self, batch_size):
         train_list = list(range(len(self.og['train']['images'])))
@@ -37,7 +37,7 @@ class CASIAFingerprintIterator(object):
             yield zip(*batch)
 
     def read_preprocess(self, img):
-        """Reads image path from image_lists, crops, rescales to 224x224,
+        """Reads image path from image_lists, crops, rescales to 448x448,
         and subtracts the saved pixel means"""
         return crop_rescale(imread(img))# - self.pixel_means
 
@@ -78,8 +78,8 @@ def crop_rescale(image):
     # original image is 356x328
     # first crop to 328x328
     image = image[14:342,0:328]
-    # then rescale to 224x224
-    image = resize(image, (224, 224), mode='constant')
+    # then rescale to 448x448
+    image = resize(image, (448, 448), mode='constant')
     # finally, flatten it
-    return np.reshape(image, (224*224,))
+    return np.reshape(image, (448*448,))
 

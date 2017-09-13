@@ -84,8 +84,8 @@ def create_model(inputs, output_size):
 
         with tf.variable_scope('fc3'):
             # Layer 5: Fully Connected. Input = 84. Output = 10.
-            fc3_w = tf.Variable(tf.truncated_normal(shape=(84,10), stddev=0.1), name='fc3_w')
-            fc3_b = tf.Variable(tf.zeros(10), name='fc3_b')
+            fc3_w = tf.Variable(tf.truncated_normal(shape=(84,output_size), stddev=0.1), name='fc3_w')
+            fc3_b = tf.Variable(tf.zeros(output_size), name='fc3_b')
             logits = tf.matmul(fc2, fc3_w) + fc3_b
 
             tf.add_to_collection('fc3_w', fc3_w)

@@ -17,9 +17,11 @@ flags.DEFINE_string('log_file', 'log.json', 'Default filename for logs saving')
 
 flags.DEFINE_string('commit', '', '[OPTIONAL] commit hash for current experiment')
 flags.DEFINE_string('dataset', '', 'mnist, mnist_conv, or the path to an optimized dataset.')
-flags.DEFINE_string('model', '', 'hinton1200, hinton800, lenet, lenet_half')
+flags.DEFINE_string('model', '', 'hinton1200, hinton800, lenet, lenet_half, vgg19, vgg16')
 flags.DEFINE_integer('rng_seed', 42, 'RNG seed, fixed for consistency')
 flags.DEFINE_string('procedure', '', 'train, compute_stats, optimize_dataset, distill')
+flags.DEFINE_string('loss', 'xent', 'xent, mse, or attrxent')
+flags.DEFINE_string('lr', '0.001', 'learning rate')
 
 flags.DEFINE_integer('epochs', 10, 'Number of training epochs')
 flags.DEFINE_integer('train_batch_size', 64, 'number of examples to be used for training')
@@ -63,7 +65,7 @@ if __name__ == '__main__':
     sess = tf.Session(config=u.get_sess_config(use_gpu=True))
 
     # initialize dataset interface
-    data = d.get(FLAGS.dataset)
+    data = d.get(FLAGS.dataset, FLAGS)
 
     # run procedure (this will create and train graphs, etc).
     p.get(FLAGS.procedure).run(sess, FLAGS, data)

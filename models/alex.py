@@ -1,4 +1,4 @@
-# vgg 19
+# alexnet
 #
 import tensorflow as tf
 import numpy as np
@@ -6,12 +6,12 @@ from tensorflow.contrib.layers import flatten
 from tensorflow.python.tools import inspect_checkpoint
 
 def create_model(inputs, output_size):
-    imagenet_init = True
-    imnet = None if not imagenet_init else np.load('models/vgg19.npy', encoding='latin1').item()
+    imagenet_init = False
+    imnet = None if not imagenet_init else Exception('You never loaded imagenet weights. Not implemented!')
 
     layer_activations = []
 
-    with tf.variable_scope('vgg'):
+    with tf.variable_scope('alex'):
         keep_prob = tf.placeholder(tf.float32, name='keep_prob')
         temperature = tf.placeholder(tf.float32, name='temperature')
 
@@ -19,39 +19,26 @@ def create_model(inputs, output_size):
         inputs_reshaped = tf.reshape(inputs, [-1, 224, 224, 3])
 
         with tf.variable_scope('conv_pool_1'):
-            conv1_1 = convLayer(inputs_reshaped, 3, 3, 1, 1, 64, "conv1_1", layer_activations, 224*224*64, init_dict=imnet)
-            conv1_2 = convLayer(conv1_1, 3, 3, 1, 1, 64, "conv1_2", layer_activations, 224*224*64, init_dict=imnet)
-            pool1 = maxPoolLayer(conv1_2, 2, 2, 2, 2, "pool1")
+            conv1_1 = convLayer(inputs_reshaped, 11, 11, 4, 4, 64, "conv1_1", layer_activations, 56*56*64, init_dict=imnet)
+            pool1 = maxPoolLayer(conv1_1, 3, 3, 2, 2, "pool1")
 
         with tf.variable_scope('conv_pool_2'):
-            conv2_1 = convLayer(pool1, 3, 3, 1, 1, 128, "conv2_1", layer_activations, 112*112*128, init_dict=imnet)
-            conv2_2 = convLayer(conv2_1, 3, 3, 1, 1, 128, "conv2_2", layer_activations, 112*112*128, init_dict=imnet)
-            pool2 = maxPoolLayer(conv2_2, 2, 2, 2, 2, "pool2")
+            conv2_1 = convLayer(pool1, 5, 5, 1, 1, 192, "conv2_1", layer_activations, 28*28*192, init_dict=imnet)
+            pool2 = maxPoolLayer(conv2_1, 3, 3, 2, 2, "pool2")
 
         with tf.variable_scope('conv_pool_3'):
-            conv3_1 = convLayer(pool2, 3, 3, 1, 1, 256, "conv3_1", layer_activations, 56*56*256, init_dict=imnet)
-            conv3_2 = convLayer(conv3_1, 3, 3, 1, 1, 256, "conv3_2", layer_activations, 56*56*256, init_dict=imnet)
-            conv3_3 = convLayer(conv3_2, 3, 3, 1, 1, 256, "conv3_3", layer_activations, 56*56*256, init_dict=imnet)
-            conv3_4 = convLayer(conv3_3, 3, 3, 1, 1, 256, "conv3_4", layer_activations, 56*56*256, init_dict=imnet)
-            pool3 = maxPoolLayer(conv3_4, 2, 2, 2, 2, "pool3")
+            conv3_1 = convLayer(pool2, 3, 3, 1, 1, 384, "conv3_1", layer_activations, 14*14*384, init_dict=imnet)
 
         with tf.variable_scope('conv_pool_4'):
-            conv4_1 = convLayer(pool3, 3, 3, 1, 1, 512, "conv4_1", layer_activations, 28*28*512, init_dict=imnet)
-            conv4_2 = convLayer(conv4_1, 3, 3, 1, 1, 512, "conv4_2", layer_activations, 28*28*512, init_dict=imnet)
-            conv4_3 = convLayer(conv4_2, 3, 3, 1, 1, 512, "conv4_3", layer_activations, 28*28*512, init_dict=imnet)
-            conv4_4 = convLayer(conv4_3, 3, 3, 1, 1, 512, "conv4_4", layer_activations, 28*28*512, init_dict=imnet)
-            pool4 = maxPoolLayer(conv4_4, 2, 2, 2, 2, "pool4")
+            conv4_1 = convLayer(conv3_1, 3, 3, 1, 1, 384, "conv4_1", layer_activations, 14*14*384, init_dict=imnet)
 
         with tf.variable_scope('conv_pool_5'):
-            conv5_1 = convLayer(pool4, 3, 3, 1, 1, 512, "conv5_1", layer_activations, 14*14*512, init_dict=imnet)
-            conv5_2 = convLayer(conv5_1, 3, 3, 1, 1, 512, "conv5_2", layer_activations, 14*14*512, init_dict=imnet)
-            conv5_3 = convLayer(conv5_2, 3, 3, 1, 1, 512, "conv5_3", layer_activations, 14*14*512, init_dict=imnet)
-            conv5_4 = convLayer(conv5_3, 3, 3, 1, 1, 512, "conv5_4", layer_activations, 14*14*512, init_dict=imnet)
-            pool5 = maxPoolLayer(conv5_4, 2, 2, 2, 2, "pool5")
+            conv5_1 = convLayer(conv4_1, 3, 3, 1, 1, 256, "conv5_1", layer_activations, 14*14*256, init_dict=imnet)
+            pool5 = maxPoolLayer(conv5_1, 3, 3, 2, 2, "pool5")
 
         with tf.variable_scope('fc_6'):
-            fcIn = tf.reshape(pool5, [-1, 7*7*512])
-            fc6 = fcLayer(fcIn, 7*7*512, 4096, True, "fc6", layer_activations, init_dict=imnet)
+            fcIn = tf.reshape(pool5, [-1, 7*7*256])
+            fc6 = fcLayer(fcIn, 7*7*256, 4096, True, "fc6", layer_activations, init_dict=imnet)
             dropout1 = dropout(fc6, keep_prob)
 
         with tf.variable_scope('fc_7'):
@@ -158,22 +145,11 @@ def load_model(sess, model_meta, model_checkpoint, output_size):
     temperature = tf.get_collection('temperature')[0]
 
     layer_activations = []
-    #  layer_activations.append((tf.get_collection('conv1_1')[0], 224*224*64))
-    #  layer_activations.append((tf.get_collection('conv1_2')[0], 224*224*64))
-    #  layer_activations.append((tf.get_collection('conv2_1')[0], 112*112*128))
-    #  layer_activations.append((tf.get_collection('conv2_2')[0], 112*112*128))
-    #  layer_activations.append((tf.get_collection('conv3_1')[0], 56*56*256))
-    #  layer_activations.append((tf.get_collection('conv3_2')[0], 56*56*256))
-    #  layer_activations.append((tf.get_collection('conv3_3')[0], 56*56*256))
-    #  layer_activations.append((tf.get_collection('conv3_4')[0], 56*56*256))
-    #  layer_activations.append((tf.get_collection('conv4_1')[0], 28*28*512))
-    #  layer_activations.append((tf.get_collection('conv4_2')[0], 28*28*512))
-    #  layer_activations.append((tf.get_collection('conv4_3')[0], 28*28*512))
-    #  layer_activations.append((tf.get_collection('conv4_4')[0], 28*28*512))
-    #  layer_activations.append((tf.get_collection('conv5_1')[0], 14*14*512))
-    #  layer_activations.append((tf.get_collection('conv5_2')[0], 14*14*512))
-    #  layer_activations.append((tf.get_collection('conv5_3')[0], 14*14*512))
-    #  layer_activations.append((tf.get_collection('conv5_4')[0], 14*14*512))
+    #  layer_activations.append((tf.get_collection('conv1_1')[0], 56*56*64))
+    #  layer_activations.append((tf.get_collection('conv2_1')[0], 28*28*192))
+    #  layer_activations.append((tf.get_collection('conv3_1')[0], 14*14*384))
+    #  layer_activations.append((tf.get_collection('conv4_1')[0], 14*14*384))
+    #  layer_activations.append((tf.get_collection('conv5_1')[0], 14*14*256))
     #  layer_activations.append((tf.get_collection('fc6')[0], 4096))
     #  layer_activations.append((tf.get_collection('fc7')[0], 4096))
     layer_activations.append((outputs, output_size))
@@ -189,7 +165,7 @@ def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size
 
     layer_activations = []
 
-    with tf.variable_scope('vgg'):
+    with tf.variable_scope('alex'):
         keep_prob = tf.placeholder(tf.float32, name='keep_prob')
         temperature = tf.placeholder(tf.float32, name='temperature')
 
@@ -199,30 +175,20 @@ def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size
         with tf.variable_scope('conv_pool_1'):
             conv1_1_w = tf.constant(sess.run(tf.get_collection('conv1_1_w')[0]), name='conv1_1_w')
             conv1_1_b = tf.constant(sess.run(tf.get_collection('conv1_1_b')[0]), name='conv1_1_b')
-            conv1_1   = tf.nn.conv2d(inputs_reshaped, conv1_1_w, strides=[1,1,1,1], padding='SAME') + conv1_1_b
+            conv1_1   = tf.nn.conv2d(inputs_reshaped, conv1_1_w, strides=[1,4,4,1], padding='SAME') + conv1_1_b
 
-            conv1_2_w = tf.constant(sess.run(tf.get_collection('conv1_2_w')[0]), name='conv1_2_w')
-            conv1_2_b = tf.constant(sess.run(tf.get_collection('conv1_2_b')[0]), name='conv1_2_b')
-            conv1_2   = tf.nn.conv2d(conv1_1, conv1_2_w, strides=[1,1,1,1], padding='SAME') + conv1_2_b
+            pool1 = maxPoolLayer(conv1_1, 3,3,2,2, name="pool1")
 
-            pool1 = maxPoolLayer(conv1_2, 2,2,2,2, name="pool1")
-
-            layer_activations.append((conv1_1, 224*224*64))
-            layer_activations.append((conv1_2, 224*224*64))
+            #  layer_activations.append((conv1_1, 56*56*64))
 
         with tf.variable_scope('conv_pool_2'):
             conv2_1_w = tf.constant(sess.run(tf.get_collection('conv2_1_w')[0]), name='conv2_1_w')
             conv2_1_b = tf.constant(sess.run(tf.get_collection('conv2_1_b')[0]), name='conv2_1_b')
             conv2_1   = tf.nn.conv2d(pool1, conv2_1_w, strides=[1,1,1,1], padding='SAME') + conv2_1_b
 
-            conv2_2_w = tf.constant(sess.run(tf.get_collection('conv2_2_w')[0]), name='conv2_2_w')
-            conv2_2_b = tf.constant(sess.run(tf.get_collection('conv2_2_b')[0]), name='conv2_2_b')
-            conv2_2   = tf.nn.conv2d(conv2_1, conv2_2_w, strides=[1,1,1,1], padding='SAME') + conv2_2_b
+            pool2 = maxPoolLayer(conv2_1, 3,3,2,2,  "pool2")
 
-            pool2 = maxPoolLayer(conv2_2, 2,2,2,2,  "pool2")
-
-            layer_activations.append((conv2_1, 112*112*128))
-            layer_activations.append((conv2_2, 112*112*128))
+            #  layer_activations.append((conv2_1, 28*28*192))
 
         with tf.variable_scope('conv_pool_3'):
 
@@ -230,78 +196,31 @@ def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size
             conv3_1_b = tf.constant(sess.run(tf.get_collection('conv3_1_b')[0]), name='conv3_1_b')
             conv3_1   = tf.nn.conv2d(pool2, conv3_1_w, strides=[1,1,1,1], padding='SAME') + conv3_1_b
 
-            conv3_2_w = tf.constant(sess.run(tf.get_collection('conv3_2_w')[0]), name='conv3_2_w')
-            conv3_2_b = tf.constant(sess.run(tf.get_collection('conv3_2_b')[0]), name='conv3_2_b')
-            conv3_2   = tf.nn.conv2d(conv3_1, conv3_2_w, strides=[1,1,1,1], padding='SAME') + conv3_2_b
-
-            conv3_3_w = tf.constant(sess.run(tf.get_collection('conv3_3_w')[0]), name='conv3_3_w')
-            conv3_3_b = tf.constant(sess.run(tf.get_collection('conv3_3_b')[0]), name='conv3_3_b')
-            conv3_3   = tf.nn.conv2d(conv3_2, conv3_3_w, strides=[1,1,1,1], padding='SAME') + conv3_3_b
-
-            conv3_4_w = tf.constant(sess.run(tf.get_collection('conv3_4_w')[0]), name='conv3_4_w')
-            conv3_4_b = tf.constant(sess.run(tf.get_collection('conv3_4_b')[0]), name='conv3_4_b')
-            conv3_4   = tf.nn.conv2d(conv3_3, conv3_4_w, strides=[1,1,1,1], padding='SAME') + conv3_4_b
-
-            pool3 = maxPoolLayer(conv3_4, 2, 2, 2, 2, "pool3")
-
-            layer_activations.append((conv3_1, 56*56*256))
-            layer_activations.append((conv3_2, 56*56*256))
-            layer_activations.append((conv3_3, 56*56*256))
-            layer_activations.append((conv3_4, 56*56*256))
+            #  layer_activations.append((conv3_1, 14*14*384))
 
         with tf.variable_scope('conv_pool_4'):
             conv4_1_w = tf.constant(sess.run(tf.get_collection('conv4_1_w')[0]), name='conv4_1_w')
             conv4_1_b = tf.constant(sess.run(tf.get_collection('conv4_1_b')[0]), name='conv4_1_b')
-            conv4_1   = tf.nn.conv2d(pool3, conv4_1_w, strides=[1,1,1,1], padding='SAME') + conv4_1_b
+            conv4_1   = tf.nn.conv2d(conv3_1, conv4_1_w, strides=[1,1,1,1], padding='SAME') + conv4_1_b
 
-            conv4_2_w = tf.constant(sess.run(tf.get_collection('conv4_2_w')[0]), name='conv4_2_w')
-            conv4_2_b = tf.constant(sess.run(tf.get_collection('conv4_2_b')[0]), name='conv4_2_b')
-            conv4_2   = tf.nn.conv2d(conv4_1, conv4_2_w, strides=[1,1,1,1], padding='SAME') + conv4_2_b
-
-            conv4_3_w = tf.constant(sess.run(tf.get_collection('conv4_3_w')[0]), name='conv4_3_w')
-            conv4_3_b = tf.constant(sess.run(tf.get_collection('conv4_3_b')[0]), name='conv4_3_b')
-            conv4_3   = tf.nn.conv2d(conv4_2, conv4_3_w, strides=[1,1,1,1], padding='SAME') + conv4_3_b
-
-            conv4_4_w = tf.constant(sess.run(tf.get_collection('conv4_4_w')[0]), name='conv4_4_w')
-            conv4_4_b = tf.constant(sess.run(tf.get_collection('conv4_4_b')[0]), name='conv4_4_b')
-            conv4_4   = tf.nn.conv2d(conv4_3, conv4_4_w, strides=[1,1,1,1], padding='SAME') + conv4_4_b
-            pool4 = maxPoolLayer(conv4_4, 2, 2, 2, 2, "pool4")
-
-            layer_activations.append((conv4_1, 28*28*512))
-            layer_activations.append((conv4_2, 28*28*512))
-            layer_activations.append((conv4_3, 28*28*512))
-            layer_activations.append((conv4_4, 28*28*512))
+            #  layer_activations.append((conv4_1, 14*14*384))
 
         with tf.variable_scope('conv_pool_5'):
             conv5_1_w = tf.constant(sess.run(tf.get_collection('conv5_1_w')[0]), name='conv5_1_w')
             conv5_1_b = tf.constant(sess.run(tf.get_collection('conv5_1_b')[0]), name='conv5_1_b')
-            conv5_1   = tf.nn.conv2d(pool4, conv5_1_w, strides=[1,1,1,1], padding='SAME') + conv5_1_b
+            conv5_1   = tf.nn.conv2d(conv4_1, conv5_1_w, strides=[1,1,1,1], padding='SAME') + conv5_1_b
 
-            conv5_2_w = tf.constant(sess.run(tf.get_collection('conv5_2_w')[0]), name='conv5_2_w')
-            conv5_2_b = tf.constant(sess.run(tf.get_collection('conv5_2_b')[0]), name='conv5_2_b')
-            conv5_2   = tf.nn.conv2d(conv5_1, conv5_2_w, strides=[1,1,1,1], padding='SAME') + conv5_2_b
+            pool5 = maxPoolLayer(conv5_1, 3, 3, 2, 2, "pool5")
 
-            conv5_3_w = tf.constant(sess.run(tf.get_collection('conv5_3_w')[0]), name='conv5_3_w')
-            conv5_3_b = tf.constant(sess.run(tf.get_collection('conv5_3_b')[0]), name='conv5_3_b')
-            conv5_3   = tf.nn.conv2d(conv5_2, conv5_3_w, strides=[1,1,1,1], padding='SAME') + conv5_3_b
-
-            conv5_4_w = tf.constant(sess.run(tf.get_collection('conv5_4_w')[0]), name='conv5_4_w')
-            conv5_4_b = tf.constant(sess.run(tf.get_collection('conv5_4_b')[0]), name='conv5_4_b')
-            conv5_4   = tf.nn.conv2d(conv5_3, conv5_4_w, strides=[1,1,1,1], padding='SAME') + conv5_4_b
-            pool5 = maxPoolLayer(conv5_4, 2, 2, 2, 2, "pool5")
-
-            layer_activations.append((conv5_1, 14*14*512))
-            layer_activations.append((conv5_2, 14*14*512))
-            layer_activations.append((conv5_3, 14*14*512))
-            layer_activations.append((conv5_4, 14*14*512))
+            #  layer_activations.append((conv5_1, 14*14*256))
 
         with tf.variable_scope('fc_6'):
-            fcIn = tf.reshape(pool5, [-1, 7*7*512])
+            fcIn = tf.reshape(pool5, [-1, 7*7*256])
             fc6_w = tf.constant(sess.run(tf.get_collection('fc6_w')[0]), name='fc6_w')
             fc6_b = tf.constant(sess.run(tf.get_collection('fc6_b')[0]), name='fc6_b')
             fc6 = tf.matmul(fcIn, fc6_w) + fc6_b
 
-            layer_activations.append((fc6, 4096))
+            #  layer_activations.append((fc6, 4096))
 
             dropout1 = dropout(fc6, keep_prob)
 
@@ -311,7 +230,7 @@ def load_and_freeze_model(sess, inputs, model_meta, model_checkpoint, batch_size
             fc7_b = tf.constant(sess.run(tf.get_collection('fc7_b')[0]), name='fc7_b')
             fc7 = tf.matmul(dropout1, fc7_w) + fc7_b
 
-            layer_activations.append((fc7, 4096))
+            #  layer_activations.append((fc7, 4096))
 
             dropout2 = dropout(fc7, keep_prob)
 

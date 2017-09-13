@@ -10,8 +10,15 @@ CASIA-PalmprintV1/
 CASIA-PalmprintV1.zip
 CASIA-FingerprintV5/
 CASIA-FingerprintV5.zip
-CroppedYale.zip
+ExtendedYaleB/
+ExtendedYaleB.tar.bz2
 CroppedYale/
+CroppedYale.zip
+datasets/vgg19.npy
+CelebA/
+train_vgg_celeba_normalize01_smallerlr.zip
+models/vgg19.npy
+models/vgg16.npy
 
 # Created by https://www.gitignore.io/api/python
 

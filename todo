@@ -1,0 +1,54 @@
+- i didnt let it subtract pixel means so it runs fast and lets me
+  see if it works so if it doesnt maybe put it back in
+CURRENT
+- learning rate is smaller on vgg celeba to see if that helps
+
+
+NEXT
+- start distillation (stefano is running on train_vgg_celeba_normalize01_smallerlr) 
+- start imagenet pretrain exp.
+  small (0.0001) lr worked but overfit later on.
+  smaller (0.00001) overfit less, but didnt achieve higher acc
+
+- and if that fails go with cifar100.
+
+NOTE:
+this was used for vgg celeba:
+python main.py --run_name=train_vgg_celeba_normalize01_smallerlr --model=vgg19 \
+    --dataset=celeba --procedure=train --eval_interval=3120 \
+    --checkpoint_interval=3120 --loss=attrxent --lr=0.00001
+
+the cmd used for compute stats vgg+Celeba is
+alert python main.py --run_name=train_vgg_celeba_normalize01_smallerlr --model=vgg19 --dataset=cele
+ba     --procedure=compute_stats     --model_meta summaries/train_vgg_celeba_normalize01_smallerlr/train/checkpoint/vgg19-24960.meta     --mode
+l_checkpoint=summaries/train_vgg_celeba_normalize01_smallerlr/train/checkpoint/vgg19-24960
+
+summaries/train_vgg_celeba_normalize01_smallerlr/stats/activation_stats_train_vgg_celeba_normalize01_smallerlr.npy
+
+
+train AlexNet:
+python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
+  --dataset=celeba --procedure=train --eval_interval=3120 \
+  --checkpoint_interval=3120 --loss=attrxent --lr=0.00001
+
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr
+  --model=alex --dataset=celeba     --procedure=compute_stats \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
+  --loss=attrxent
+
+
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex --dataset=celeba     --procedure=optimize_dataset \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
+  --optimization_objective=top_layer \
+  --loss=attrxent
+
+
+python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
+  --dataset="summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy" \
+  --procedure=distill \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
+  --eval_dataset=celeba --student_model=alex_half --epochs=30 --loss=attrxent

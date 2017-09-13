@@ -1,5 +1,5 @@
 
-def get(dataset_name):
+def get(dataset_name, f):
     """ Returns a dataset object with easy interface.
 
     Interface:
@@ -18,6 +18,12 @@ def get(dataset_name):
     if dataset_name == 'casia':
         from . import casia as c
         return c.CASIAFingerprintIterator()
+    if dataset_name == 'yale':
+        from . import yale as y
+        return y.YaleFacesIterator()
+    if dataset_name == 'celeba':
+        from . import celeba as c
+        return c.CelebAFacesIterator()
     else:
         from . import optimized_dataset as d
-        return d.OptimizedDatasetIterator(dataset_name)
+        return d.OptimizedDatasetIterator(dataset_name, f)

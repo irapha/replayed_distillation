@@ -43,14 +43,15 @@ def run(sess, f, data):
         stats = np.load(os.path.join(f.summary_folder, f.run_name, 'stats',
                                      'activation_stats_{}.npy'.format(f.run_name)))[()]
 
-        data_optimized = {clas: [] for clas in range(output_size)}
-        for clas in range(output_size):
+        #  data_optimized = {clas: [] for clas in range(output_size)}
+        num_classes = output_size // 2 if f.loss == 'attrxent' else output_size
+        for clas in range(36, num_classes): # the 36 is temporary, so we dont re-do computation we already did...
             print('optimizing examples for class: {}'.format(clas))
             # creating 100 batches for this class
             # the data is saved as a list of batches, each with batch_size = f.train_batch_size
             # each batch is saved as a tuple of (np.array of images, np.array of latent outputs)
-            for i in range(100):
-                print('batch {}/100'.format(i), end='\r')
+            for i in range(40):
+                print('batch {}/40'.format(i), end='\r')
                 # reinitialize graph
                 sess.run(reinit_op)
 
@@ -73,10 +74,16 @@ def run(sess, f, data):
 
                 optimized_inputs = sess.run(input_var)
                 optimized_outputs = [sess.run(outputs, feed_dict=feed_dicts['distill'])]
-                data_optimized[clas].append((optimized_inputs, optimized_outputs))
+                #  data_optimized[clas].append((optimized_inputs, optimized_outputs))
+
+                # save this class' optimized data. keeping everything in memory is too much.
+                data_dir = os.path.join(f.summary_folder, f.run_name, 'data')
+                u.ensure_dir_exists(data_dir)
+                data_file = os.path.join(data_dir, 'data_optimized_{}_{}_{}_{}.npy'.format(f.optimization_objective, f.run_name, clas, i))
+                np.save(data_file, (optimized_inputs, optimized_outputs))
 
     data_dir = os.path.join(f.summary_folder, f.run_name, 'data')
     u.ensure_dir_exists(data_dir)
-    data_file = os.path.join(data_dir, 'data_optimized_{}_{}.npy'.format(f.optimization_objective, f.run_name))
-    np.save(data_file, data_optimized)
+    data_file = os.path.join(data_dir, 'data_optimized_{}_{}_<clas>_<batch>.npy'.format(f.optimization_objective, f.run_name))
+    #  np.save(data_file, data_optimized)
     print('data saved in {}'.format(data_file))

@@ -17,7 +17,7 @@ MODEL_CHECKPOINT = 'summaries/hinton1200_mnist_withcollect/checkpoint/hinton1200
 
 def run(sess, f, data):
     # load data that will be used for evaluating the distillation process
-    eval_data = d.get(f.eval_dataset)
+    eval_data = d.get(f.eval_dataset, f)
 
     # load teacher graph
     _, output_size = data.io_shape
@@ -27,7 +27,7 @@ def run(sess, f, data):
     # create student graph
     outputs, _, feed_dicts = m.get(f.model).create_model(inputs, output_size)
 
-    loss, train_step = create_train_ops(outputs, teacher_outputs)
+    loss, train_step = create_train_ops(outputs, teacher_outputs, lr=f.lr, loss=f.loss)
     accuracy = create_eval_ops(outputs, teacher_outputs)
     summary_op = create_summary_ops(loss, accuracy)
 
@@ -88,13 +88,24 @@ def run(sess, f, data):
 
     print('distilled model saved in {}'.format(checkpoint_file))
 
-def create_train_ops(h, labels, scope='train_ops'):
-    with tf.variable_scope('xent_' + scope):
-        loss = tf.reduce_mean(
-                tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+def create_train_ops(h, labels, lr=0.001, scope='train_ops', loss='xent'):
+    if loss == 'xent':
+        with tf.variable_scope('xent_' + scope):
+            loss = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_xent'))
+    elif loss == 'attrxent':
+        with tf.variable_scope('attrxent_' + scope):
+            # first reshape output to have one more dim with 2 attrs
+            h = tf.reshape(h, (-1, 2))
+            labels = tf.reshape(labels, (-1, 2))
+            loss = tf.reduce_mean(
+                    tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=h, name='sftmax_attrxent'))
+    elif loss == 'mse':
+        with tf.variable_scope('mse_' + scope):
+            loss = tf.losses.mean_squared_error(labels=labels, predictions=tf.nn.relu(h))
 
     with tf.variable_scope('opt_' + scope):
-        train_step = tf.train.AdamOptimizer().minimize(loss)
+        train_step = tf.train.AdamOptimizer(learning_rate=float(lr)).minimize(loss)
 
     return loss, train_step
 
