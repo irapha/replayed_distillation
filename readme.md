@@ -47,6 +47,9 @@ as `datasets/mnist.py`. Namely, the dataset class needs to have an `io_size`
 property that specifies the input size and the label output size. It also needs
 two iterator methods: `train_epoch_in_batches` and `test_epoch_in_batches`.
 
+Note: Credit for the attribute and data files of [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+dataset is given to [this repo](https://github.com/andersbll/deeppy/blob/master/deeppy/dataset/celeba.py).
+
 We provide four models in `models/`: two fully connected and two convolutional.
 The fully connected models are hinton-1200 and hinton-800, as described in the
 original [knowledge distillation paper](https://arxiv.org/abs/1503.02531). The
@@ -134,7 +137,7 @@ python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
     --procedure=optimize_dataset \
     --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
     --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
-    --optimization_objective=top_layer
+    --optimization_objective=top_layer --lr=0.07
     # or all_layers, spectral_all_layers, spectral_layer_pairs
 ```
 
@@ -152,7 +155,7 @@ python main.py --run_name=experiment --model=hinton1200 \
     --procedure=distill \
     --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
     --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
-    --eval_dataset=mnist --student_model=hinton800 --epochs=30
+    --eval_dataset=mnist --student_model=hinton800 --epochs=30 --lr=0.00001
 ```
 
 ### Distilling a Model Using Vanilla Knowledge Distillation
@@ -169,7 +172,7 @@ python main.py --run_name=experiment --model=hinton1200 --dataset=mnist \
     --procedure=distill \
     --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
     --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
-    --eval_dataset=mnist --student_model=hinton800
+    --eval_dataset=mnist --student_model=hinton800 --lr=0.0001
 ```
 
 ### Tips and Tricks

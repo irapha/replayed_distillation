@@ -18,14 +18,15 @@ def get(optimization_objective):
                 'yet'.format(optimization_objective))
 
 class top_layer:
-    def __init__(self, layer_activations):
+    def __init__(self, layer_activations, lr):
         tensor, size = layer_activations[-1]
         self.top_layer_size = size
         self.top_layer_placeholder = tf.placeholder(tf.float32, [None, size],
                 name='{}_placeholder'.format(get_name(tensor)))
         recreate_loss = tf.reduce_mean(
                 tf.pow(tf.nn.relu(self.top_layer_placeholder) - tf.nn.relu(tensor), 2))
-        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+        # og lr was 0.07
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, _ = stats
@@ -45,7 +46,7 @@ class top_layer:
             sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 class all_layers:
-    def __init__(self, layer_activations):
+    def __init__(self, layer_activations, lr):
         self.layer_placeholders = []
         self.layer_sizes = []
         recreate_loss = 0.0
@@ -57,7 +58,7 @@ class all_layers:
 
             recreate_loss += (1.0 / size) * tf.reduce_mean(
                     tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
-        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, _ = stats
@@ -77,7 +78,7 @@ class all_layers:
             sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 class all_layers_dropout:
-    def __init__(self, layer_activations):
+    def __init__(self, layer_activations, lr):
         self.layer_placeholders = []
         self.layer_sizes = []
         recreate_loss = 0.0
@@ -89,7 +90,7 @@ class all_layers_dropout:
 
             recreate_loss += (1.0 / size) * tf.reduce_mean(
                     tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
-        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, _ = stats
@@ -117,7 +118,7 @@ def _get_dropout_filter(shape, keep_prob):
 
 
 class spectral_all_layers:
-    def __init__(self, layer_activations):
+    def __init__(self, layer_activations, lr):
         self.layer_placeholders = []
         self.layer_sizes = []
         recreate_loss = 0.0
@@ -130,7 +131,7 @@ class spectral_all_layers:
             recreate_loss += (1.0 / size) * tf.reduce_mean(
                     tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
 
-        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, graphwise_stats = stats
@@ -154,7 +155,7 @@ class spectral_all_layers:
             sess.run(filter_assign_op, feed_dict={filter_place: _get_dropout_filter(shape, 1.0)})
 
 class spectral_layer_pairs:
-    def __init__(self, layer_activations):
+    def __init__(self, layer_activations, lr):
         self.layer_placeholders = []
         self.layer_sizes = []
         recreate_loss = 0.0
@@ -167,7 +168,7 @@ class spectral_layer_pairs:
 
             recreate_loss += (1.0 / size) * tf.reduce_mean(
                     tf.pow(tf.nn.relu(placeholder) - tf.nn.relu(tensor), 2))
-        self.recreate_op = tf.train.AdamOptimizer(learning_rate=0.07).minimize(recreate_loss)
+        self.recreate_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(recreate_loss)
 
     def sample_from_stats(self, stats, clas, batch_size, feed_dicts=None):
         layerwise_stats, graphwise_stats = stats

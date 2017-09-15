@@ -27,7 +27,7 @@ def run(sess, f, data):
 
     # create ops specific to the optimization objective
     # (top_layer, all_layers, all_layers_dropout, spectral_all_layers, spectral_layer_pairs)
-    opt_obj = o.get(f.optimization_objective)(layer_activations)
+    opt_obj = o.get(f.optimization_objective)(layer_activations, float(f.lr))
     # this created class will also be used to create the feed_dicts we need for
     # the optimization objective at every train step.
 
@@ -45,7 +45,7 @@ def run(sess, f, data):
 
         #  data_optimized = {clas: [] for clas in range(output_size)}
         num_classes = output_size // 2 if f.loss == 'attrxent' else output_size
-        for clas in range(36, num_classes): # the 36 is temporary, so we dont re-do computation we already did...
+        for clas in range(num_classes):
             print('optimizing examples for class: {}'.format(clas))
             # creating 100 batches for this class
             # the data is saved as a list of batches, each with batch_size = f.train_batch_size
