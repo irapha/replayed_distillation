@@ -62,3 +62,6 @@ alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
   --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
   --eval_dataset=celeba --student_model=alex_half --epochs=30 --loss=attrxent \
   --lr=0.0000001
+
+
+note: now we regularize the dataset optimization with http://yosinski.com/media/papers/Yosinski__2015__ICML_DL__Understanding_Neural_Networks_Through_Deep_Visualization__.pdf

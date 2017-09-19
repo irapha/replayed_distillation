@@ -62,19 +62,68 @@ def run(sess, f, data):
                 opt_obj.reinitialize_dropout_filters(sess, dropout_filters)
 
                 # reinitialize input tf.Variable to random noise
-                input_kernels = [np.random.normal(0.15, 0.1, size=[input_size]) for _ in range(f.train_batch_size)]
+                # use this for mnist:
+                #  input_kernels = [np.random.normal(0.15, 0.1, size=[input_size]) for _ in range(f.train_batch_size)]
+                # use this for celeba:
+                input_kernels = [np.random.normal(0.44, 0.29, size=[input_size]) for _ in range(f.train_batch_size)]
                 sess.run(assign_op, feed_dict={input_placeholder: input_kernels})
 
                 # initialize feed_dict with whatever samples from stats the optimization objective needs
                 optimize_feed_dict = opt_obj.sample_from_stats(stats, clas, f.train_batch_size, feed_dicts=feed_dicts)
 
+                ### REMOVE
+                #  optimized_inputs = sess.run(input_var)
+                #  print('min: {}'.format(min(optimized_inputs[0])))
+                #  print('max: {}'.format(max(optimized_inputs[0])))
+                #  print('mean: {}'.format(np.mean(np.reshape(optimized_inputs, (-1,)))))
+                #  print('std: {}'.format(np.std(np.reshape(optimized_inputs, (-1,)))))
+
+                # create blur op
+                blur_kernel = tf.constant([
+                    [[[1/16, 0, 0], [0, 1/16, 0], [0, 0, 1/16]],
+                     [[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
+                     [[1/16, 0 ,0], [0, 1/16, 0], [0, 0, 1/16]]],
+                    [[[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
+                     [[1/4 , 0, 0], [0, 1/4 , 0], [0, 0, 1/4 ]],
+                     [[1/8 , 0 ,0], [0, 1/8 , 0], [0, 0, 1/8 ]]],
+                    [[[1/16, 0, 0], [0, 1/16, 0], [0, 0, 1/16]],
+                     [[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
+                     [[1/16, 0 ,0], [0, 1/16, 0], [0, 0, 1/16]]]])
+                padded_input = tf.pad(tf.reshape(input_var, [64, 224, 224, 3]), [[0, 0], [1, 1], [1, 1], [0, 0]], 'SYMMETRIC')
+                blurred_inputs = tf.nn.conv2d(padded_input, blur_kernel, strides=[1,1,1,1], padding='VALID')
+                blurred_clipped_inputs = tf.clip_by_value(blurred_inputs, 0.0, 1.0)
+                blur_clip_op = tf.assign(input_var, tf.reshape(blurred_clipped_inputs, [64, -1]))
+                ### REMOVE END
+
                 # the actual optimization step, where we backprop to the input tf.Variable
+                #  for _ in range(1000):
                 for _ in range(1000):
                     _ = sess.run(opt_obj.recreate_op, feed_dict=optimize_feed_dict)
+                    ### REMOVE
+                    # blur the input and clip values to [0,1]
+                    sess.run(blur_clip_op)
+                    ### REMOVE END
 
                 optimized_inputs = sess.run(input_var)
                 optimized_outputs = [sess.run(outputs, feed_dict=feed_dicts['distill'])]
                 #  data_optimized[clas].append((optimized_inputs, optimized_outputs))
+
+                ### REMOVE
+                #  print('vvv')
+                #  import cv2
+                #  import sys
+                #  from viz.view import reshape_to_row
+
+                #  print('min: {}'.format(min(optimized_inputs[0])))
+                #  print('max: {}'.format(max(optimized_inputs[0])))
+                #  print('mean: {}'.format(np.mean(np.reshape(optimized_inputs, (-1,)))))
+                #  print('std: {}'.format(np.std(np.reshape(optimized_inputs, (-1,)))))
+
+                #  means = [np.squeeze(np.mean(optimized_inputs, axis=0))]
+                #  cv2.imshow('means.png', reshape_to_row(np.array(means), side=224, rgb=True))
+                #  cv2.waitKey(0)
+                #  sys.exit(-1)
+                ### REMOVE END
 
                 # save this class' optimized data. keeping everything in memory is too much.
                 data_dir = os.path.join(f.summary_folder, f.run_name, 'data')
