@@ -50,8 +50,15 @@ def run(sess, f, data):
             # creating 100 batches for this class
             # the data is saved as a list of batches, each with batch_size = f.train_batch_size
             # each batch is saved as a tuple of (np.array of images, np.array of latent outputs)
-            for i in range(40):
-                print('batch {}/40'.format(i), end='\r')
+            ### TODO: THIS IS FOR MNIST
+            #  for i in range(100):
+                #  print('batch {}/100'.format(i), end='\r')
+            # THIS IS FOR CELEBA ATTR
+            #  for i in range(40):
+                #  print('batch {}/40'.format(i), end='\r')
+            # THIS IS FOR CELEBA IDEN
+            for i in range(1):
+                print('batch {}/1'.format(i), end='\r')
                 # reinitialize graph
                 sess.run(reinit_op)
 
@@ -79,30 +86,37 @@ def run(sess, f, data):
                 #  print('std: {}'.format(np.std(np.reshape(optimized_inputs, (-1,)))))
 
                 # create blur op
-                blur_kernel = tf.constant([
-                    [[[1/16, 0, 0], [0, 1/16, 0], [0, 0, 1/16]],
-                     [[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
-                     [[1/16, 0 ,0], [0, 1/16, 0], [0, 0, 1/16]]],
-                    [[[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
-                     [[1/4 , 0, 0], [0, 1/4 , 0], [0, 0, 1/4 ]],
-                     [[1/8 , 0 ,0], [0, 1/8 , 0], [0, 0, 1/8 ]]],
-                    [[[1/16, 0, 0], [0, 1/16, 0], [0, 0, 1/16]],
-                     [[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
-                     [[1/16, 0 ,0], [0, 1/16, 0], [0, 0, 1/16]]]])
-                padded_input = tf.pad(tf.reshape(input_var, [64, 224, 224, 3]), [[0, 0], [1, 1], [1, 1], [0, 0]], 'SYMMETRIC')
-                blurred_inputs = tf.nn.conv2d(padded_input, blur_kernel, strides=[1,1,1,1], padding='VALID')
-                blurred_clipped_inputs = tf.clip_by_value(blurred_inputs, 0.0, 1.0)
-                blur_clip_op = tf.assign(input_var, tf.reshape(blurred_clipped_inputs, [64, -1]))
+                #  blur_kernel_rgb = tf.constant([
+                    #  [[[1/16, 0, 0], [0, 1/16, 0], [0, 0, 1/16]],
+                     #  [[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
+                     #  [[1/16, 0 ,0], [0, 1/16, 0], [0, 0, 1/16]]],
+                    #  [[[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
+                     #  [[1/4 , 0, 0], [0, 1/4 , 0], [0, 0, 1/4 ]],
+                     #  [[1/8 , 0 ,0], [0, 1/8 , 0], [0, 0, 1/8 ]]],
+                    #  [[[1/16, 0, 0], [0, 1/16, 0], [0, 0, 1/16]],
+                     #  [[1/8 , 0, 0], [0, 1/8 , 0], [0, 0, 1/8 ]],
+                     #  [[1/16, 0 ,0], [0, 1/16, 0], [0, 0, 1/16]]]])
+                #  padded_input = tf.pad(tf.reshape(input_var, [64, 224, 224, 3]), [[0, 0], [1, 1], [1, 1], [0, 0]], 'SYMMETRIC')
+
+                #  blur_kernel_grey = tf.constant([
+                    #  [[[1/16]], [[1/8 ]], [[1/16]]],
+                    #  [[[1/8 ]], [[1/4 ]], [[1/8 ]]],
+                    #  [[[1/16]], [[1/8 ]], [[1/16]]]])
+                #  padded_input = tf.pad(tf.reshape(input_var, [64, 28, 28, 1]), [[0, 0], [1, 1], [1, 1], [0, 0]], 'SYMMETRIC')
+
+                #  blurred_inputs = tf.nn.conv2d(padded_input, blur_kernel_grey, strides=[1,1,1,1], padding='VALID')
+                #  blurred_clipped_inputs = tf.clip_by_value(blurred_inputs, 0.0, 1.0)
+                #  blur_clip_op = tf.assign(input_var, tf.reshape(blurred_clipped_inputs, [64, -1]))
                 ### REMOVE END
 
                 # the actual optimization step, where we backprop to the input tf.Variable
-                #  for _ in range(1000):
-                for _ in range(1000):
-                    _ = sess.run(opt_obj.recreate_op, feed_dict=optimize_feed_dict)
+                for opt_step in range(1000):
                     ### REMOVE
-                    # blur the input and clip values to [0,1]
-                    sess.run(blur_clip_op)
+                    #  blur the input and clip values to [0,1]
+                    #  if opt_step % 100  == 0:
+                        #  sess.run(blur_clip_op)
                     ### REMOVE END
+                    _ = sess.run(opt_obj.recreate_op, feed_dict=optimize_feed_dict)
 
                 optimized_inputs = sess.run(input_var)
                 optimized_outputs = [sess.run(outputs, feed_dict=feed_dicts['distill'])]
