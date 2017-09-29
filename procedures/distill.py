@@ -85,6 +85,7 @@ def run(sess, f, data):
                     ensure_dir_exists(checkpoint_dir)
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
+                    print('distilled model saved in {}'.format(checkpoint_file))
 
     print('distilled model saved in {}'.format(checkpoint_file))
 
