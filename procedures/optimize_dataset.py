@@ -57,8 +57,11 @@ def run(sess, f, data):
             #  for i in range(40):
                 #  print('batch {}/40'.format(i), end='\r')
             # THIS IS FOR CELEBA IDEN
-            for i in range(1):
-                print('batch {}/1'.format(i), end='\r')
+            #  for i in range(1):
+                #  print('batch {}/1'.format(i), end='\r')
+            # THIS IS FOR CELEBA BALANCE
+            for i in range(300):
+                print('batch {}/300'.format(i), end='\r')
                 # reinitialize graph
                 sess.run(reinit_op)
 
