@@ -104,7 +104,8 @@ def read_data_set(image_dir):
 
             # this guarantees 3 images per identity in test set, rest in train set.
             partition = 'train'
-            if flipped[identities_to_idx[fields[1]]] < 3:
+            # this is the number of examples to put in test set. since we have ~30 ex/identity, 9 is 30%
+            if flipped[identities_to_idx[fields[1]]] < 9:
                 partition = 'test'
                 flipped[identities_to_idx[fields[1]]] += 1
 
