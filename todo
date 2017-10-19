@@ -21,6 +21,11 @@ well-balanced attribute in CelebA.
 
 
 
+If we report all_layers scores, we need to mention that the single-attr
+simplification helped us in saving memory here, and that our code isn't ready
+for many classes and many big layers, but that with a few modifications (saving
+to disk at every class+layer), it could be done.
+
 
 
 NOTE:
@@ -186,10 +191,52 @@ alert python main.py --run_name=alex_celeba_balance   --model=alex \
   --checkpoint_interval=590 --removed=5zeros
 
 the distillation that worked best (peaking at 58% test and 97.7% train. was running on 29/09  00:51:24)
-alert python main.py --run_name=alex_celeba_balance   --model=alex \
+alert python main.py --run_name=alex_celeba_balance  --model=alex \
   --dataset='"summaries/alex_celeba_balance/data/data_optimized_top_layer_alex_celeba_balance_<clas>_<batch>.npy"' \
   --procedure=distill \
   --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
   --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
   --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 \
   --lr=0.0001 --eval_interval=590 --checkpoint_interval=590 --removed=4zeros
+this (best distill) ended at 01/10  11:44:39 but like in the early AM
+
+started hinton-distilling alex half celeba_balance at 01/10  11:57:33
+alert python main.py --run_name=alex_celeba_balance   --model=alex \
+  --dataset=celeba_balance   --procedure=distill \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
+  --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 \
+  --lr=0.0001 --eval_interval=3120 --checkpoint_interval=3120 --removed=4zeros
+that ran out of memory so im running train alex half:
+alert python main.py --run_name=alexhalf_celeba_balance   --model=alex_half \
+  --dataset=celeba_balance --procedure=train --eval_interval=3120 \
+  --checkpoint_interval=3120 --lr=0.00001 --epochs=10
+
+on 03/10  13:38:39 i stopped a train alexhalf celebabalance experiment bc it
+diverged. The one before that is canonical for now. Unless otherwise noted
+below.
+
+04/10  10:07:37 i finished training the REAL canonical alexhalf celebabalance.
+Ignore above.
+
+
+these commands were run too:
+
+alert python main.py --run_name=alexhalf_celeba_balance   --model=alex_half --dataset=celeba_balance --procedure=train --eval_interval=3120 --checkpoint_interval=3120 --lr=0.0001 --epochs=50
+
+alert python main.py --run_name=alex_celeba_balance   --model=alex --dataset=celeba_balance   --procedure=distill --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 --lr=0.0001 --eval_interval=3120 --checkpoint_interval=3120 --removed=4zeros
+
+
+
+
+
+
+want to optimize dataset again by clipping values:
+alert python main.py --run_name=alex_celeba_balance   --model=alex --dataset=celeba_balance     --procedure=optimize_dataset   --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta   --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880   --optimization_objective=top_layer   --lr=0.05
+
+but before that we need to verify teacher model is giving correct accuracy
+
+09/10  02:33:08 just finished gen dataset with clipping
+and started distilling
+
+09/10  10:57:17 started re optimizing dataset bc the distill wasnt giving good accuracies. now we're doing 300 batches rather than 125

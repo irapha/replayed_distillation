@@ -112,6 +112,11 @@ def run(sess, f, data):
                 #  blur_clip_op = tf.assign(input_var, tf.reshape(blurred_clipped_inputs, [64, -1]))
                 ### REMOVE END
 
+                ### REMOVE
+                #  blurred_clipped_inputs = tf.clip_by_value(input_var, 0.0, 1.0)
+                #  blur_clip_op = tf.assign(input_var, tf.reshape(blurred_clipped_inputs, [64, -1]))
+                ### REMOVE END
+
                 # the actual optimization step, where we backprop to the input tf.Variable
                 for opt_step in range(1000):
                     ### REMOVE
