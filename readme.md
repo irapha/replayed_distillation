@@ -17,8 +17,9 @@ different kinds of metadata that can be used with our method, and discuss
 tradeoffs involved in using each of them.
 
 ### Paper
-The paper is currently under review for [NIPS 2017](https://nips.cc/) and will
-be on arxiv soon! In the meantime, you can feel free to read the
+The paper is currently under review for [AISTATS 2018](http://aistats.org) and
+[NIPS 2017 LLD Workshop](https://lld-workshop.github.io/).
+You can feel free to read the [arxiv](https://arxiv.org/abs/1710.07535) or the
 [poster](raphagl.com/research/NeuralNetworkKnowledgeDistillationWithNoTrainingData.pdf)
 for this work, or contact me with any questions.
 
