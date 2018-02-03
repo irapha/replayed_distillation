@@ -148,7 +148,7 @@ access to it), you can specify it as the `eval_dataset`.
 
 ```bash
 python main.py --run_name=experiment --model=hinton1200 \
-    --dataset=summaries/experiment/data/data_optimized_top_layer_experiment.npy \
+    --dataset=summaries/experiment/data/data_optimized_top_layer_experiment_<clas>_<batch>.npy \
     --procedure=distill \
     --model_meta=summaries/experiment/train/checkpoint/hinton1200-8000.meta \
     --model_checkpoint=summaries/experiment/train/checkpoint/hinton1200-8000 \
@@ -197,7 +197,7 @@ python main.py --run_name=experiment --model=lenet --dataset=mnist_conv \
     # or all_layers, spectral_all_layers, spectral_layer_pairs
 
 python main.py --run_name=experiment --model=lenet \
-    --dataset=summaries/experiment/data/data_optimized_top_layer_experiment.npy \
+    --dataset=summaries/experiment/data/data_optimized_top_layer_experiment_<clas>_<batch>.npy \
     --procedure=distill \
     --model_meta=summaries/experiment/train/checkpoint/lenet-8000.meta \
     --model_checkpoint=summaries/experiment/train/checkpoint/lenet-8000 \
@@ -218,7 +218,7 @@ example of an optimized dataset.
 
 ```bash
 python viz/print_stats.py \
-    --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment.npy
+    --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment_<clas>_<batch>.npy
 ```
 
 <div align="center">
