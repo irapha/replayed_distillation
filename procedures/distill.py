@@ -45,6 +45,9 @@ def run(sess, f, data):
     with sess.as_default():
         global_step = 0
 
+        print('Note: accuracies here are how much the student correlates to the teacher.]')
+        print('For true set accuracy, multiply by teacher\'s accuracy.')
+
         for i in range(f.epochs):
             print('Epoch: {}'.format(i))
             for batch_x, _ in data.train_epoch_in_batches(f.train_batch_size):
@@ -85,6 +88,7 @@ def run(sess, f, data):
                     ensure_dir_exists(checkpoint_dir)
                     checkpoint_file = os.path.join(checkpoint_dir, f.model)
                     saver.save(sess, checkpoint_file, global_step=global_step)
+                    print('distilled model saved in {}'.format(checkpoint_file))
 
     print('distilled model saved in {}'.format(checkpoint_file))
 

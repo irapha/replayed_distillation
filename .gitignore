@@ -20,6 +20,9 @@ train_vgg_celeba_normalize01_smallerlr.zip
 models/vgg19.npy
 models/vgg16.npy
 
+# for the identities file, please ask the authors of the CelebA dataset
+identity_CelebA.txt
+
 # Created by https://www.gitignore.io/api/python
 
 ### Python ###

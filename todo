@@ -1,16 +1,32 @@
-- i didnt let it subtract pixel means so it runs fast and lets me
-  see if it works so if it doesnt maybe put it back in
-CURRENT
-- learning rate is smaller on vgg celeba to see if that helps
+NEXT:
+Biometrics usually have one of two problems: unbalanced attributes, or low
+number of examples per class. Celeba has very poorly distributed attributes (see
+https://arxiv.org/pdf/1603.07027.pdf page 8), and only ~32 examples for the 300
+most common identities. Biometrics on unbalanced datasets or on low number of
+examples per identity is an open problem on its own, and isn't the aim of
+this paper.
+
+Further, preliminary experiments showed that low accuracies in the teacher make
+it much harder to distill a student model. We can cite that for identities,
+with teacher at 0.37708333333333333 test and 0.9998779296875 train after 150
+epochs. Also we only used 300 most common identities (~32 ex/iden) and
+reserved 3 of each for test set. This gave a distilled student of ~5% test and
+~55% train. When using a 70/30 test split, we got a teacher with
+0.31359011627906974 test and 1.0 train and a student of ~0.4% test and ~36%
+train.
+
+So, in order to show that our method can generalize for big datasets and big
+models, we simplify our training task and try to predict only the most
+well-balanced attribute in CelebA.
 
 
-NEXT
-- start distillation (stefano is running on train_vgg_celeba_normalize01_smallerlr) 
-- start imagenet pretrain exp.
-  small (0.0001) lr worked but overfit later on.
-  smaller (0.00001) overfit less, but didnt achieve higher acc
 
-- and if that fails go with cifar100.
+If we report all_layers scores, we need to mention that the single-attr
+simplification helped us in saving memory here, and that our code isn't ready
+for many classes and many big layers, but that with a few modifications (saving
+to disk at every class+layer), it could be done.
+
+
 
 NOTE:
 this was used for vgg celeba:
@@ -26,29 +42,201 @@ l_checkpoint=summaries/train_vgg_celeba_normalize01_smallerlr/train/checkpoint/v
 summaries/train_vgg_celeba_normalize01_smallerlr/stats/activation_stats_train_vgg_celeba_normalize01_smallerlr.npy
 
 
-train AlexNet:
+# train AlexNet celeba:
 python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
   --dataset=celeba --procedure=train --eval_interval=3120 \
   --checkpoint_interval=3120 --loss=attrxent --lr=0.00001
 
-alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr
+# compute stats on alexNet celeba:
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
   --model=alex --dataset=celeba     --procedure=compute_stats \
   --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
   --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
   --loss=attrxent
 
 
+# optimized alex celeba dataset
 alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
   --model=alex --dataset=celeba     --procedure=optimize_dataset \
   --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
   --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
   --optimization_objective=top_layer \
-  --loss=attrxent
+  --loss=attrxent --lr=0.05
 
 
-python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \
-  --dataset="summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy" \
+# distill alex celeba
+/* python main.py --run_name=train_alex_celeba_normalize01_smallerlr --model=alex \ */
+  /* --dataset="summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy" \ */
+  /* --procedure=distill \ */
+  /* --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \ */
+  /* --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \ */
+  /* --eval_dataset=celeba --student_model=alex_half --epochs=30 --loss=attrxent */
+
+# distill alex celeba? this has right lr.
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex \
+  --dataset='"summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy"' \
   --procedure=distill \
   --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960.meta \
   --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-24960 \
-  --eval_dataset=celeba --student_model=alex_half --epochs=30 --loss=attrxent
+  --eval_dataset=celeba --student_model=alex_half --epochs=30 --loss=attrxent \
+  --lr=0.00000001
+
+
+note: now we regularize the dataset optimization with http://yosinski.com/media/papers/Yosinski__2015__ICML_DL__Understanding_Neural_Networks_Through_Deep_Visualization__.pdf
+
+
+
+
+# train alex celeba iden:
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex   --dataset=celeba_iden --procedure=train --eval_interval=100 \
+  --checkpoint_interval=100 --lr=0.00001 --epochs=150
+
+# stats alex celeba iden:
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex --dataset=celeba_iden     --procedure=compute_stats \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-19200.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-19200
+
+# optimize alex celeba iden:
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex --dataset=celeba_iden     --procedure=optimize_dataset \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-19200.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-19200 \
+  --optimization_objective=top_layer \
+  --lr=0.05
+
+# distill alex celeba iden
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex \
+  --dataset='"summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy"' \
+  --procedure=distill \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-19200.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-19200 \
+  --eval_dataset=celeba --student_model=alex_half --epochs=150 \
+  --lr=0.00000001
+
+
+LOGS:
+21/09  12:24:57 stopped distilling alex celeba iden with 300 identities as labels.
+    and started one with 70/30 test split, because above was 10%
+22/09  19:03:06 stopped distilling alex celeba iden with 300 iden and 70/30 split.
+
+
+# computing stats for alex trained on celeba_iden, but with 70/30 test split (new model meta and checkpoint)
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex --dataset=celeba_iden     --procedure=compute_stats \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-15000.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-15000
+
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex --dataset=celeba_iden     --procedure=optimize_dataset \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-15000.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-15000 \
+  --optimization_objective=top_layer   --lr=0.05
+
+alert python main.py --run_name=train_alex_celeba_normalize01_smallerlr \
+  --model=alex \
+  --dataset='"summaries/train_alex_celeba_normalize01_smallerlr/data/data_optimized_top_layer_train_alex_celeba_normalize01_smallerlr_<clas>_<batch>.npy"' \
+  --procedure=distill \
+  --model_meta=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-15000.meta \
+  --model_checkpoint=summaries/train_alex_celeba_normalize01_smallerlr/train/checkpoint/alex-15000 \
+  --eval_dataset=celeba --student_model=alex_half --epochs=150 \
+  --lr=0.00000001
+
+
+# train on celeba balance
+/* alert python main.py --run_name=alex_celeba_balance \ */
+  /* --model=alex   --dataset=celeba_balance --procedure=train --eval_interval=100 \ */
+  /* --checkpoint_interval=100 --lr=0.00001 --epochs=150 */
+
+alert python main.py --run_name=alex_celeba_balance   --model=alex \
+  --dataset=celeba_balance --procedure=train --eval_interval=3120 \
+  --checkpoint_interval=3120 --lr=0.00001 --epochs=10
+
+alert python main.py --run_name=alex_celeba_balance   \
+  --model=alex --dataset=celeba_balance     --procedure=compute_stats \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880
+
+alert python main.py --run_name=alex_celeba_balance   \
+  --model=alex --dataset=celeba_balance     --procedure=optimize_dataset \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
+  --optimization_objective=top_layer   --lr=0.05
+
+alert python main.py --run_name=alex_celeba_balance \
+  --model=alex \
+  --dataset='"summaries/alex_celeba_balance/data/data_optimized_top_layer_alex_celeba_balance_<clas>_<batch>.npy"' \
+  --procedure=distill \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
+  --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 \
+  /* --lr=0.00000001 */
+  --lr=0.0000001 --eval_interval=590 --checkpoint_interval=590
+
+LOGS
+26/09  14:24:23 stopped "removed 3 zeros" exp (which peaked at 60% accuracy on
+  og celeba test for 1 attr) and started "removed 5 zeros"
+
+Removed 5 zeros:
+alert python main.py --run_name=alex_celeba_balance   --model=alex \
+  --dataset='"summaries/alex_celeba_balance/data/data_optimized_top_layer_alex_celeba_balance_<clas>_<batch>.npy"' \
+  --procedure=distill \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
+  --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 \
+  --lr=0.001 --eval_interval=59 \
+  --checkpoint_interval=590 --removed=5zeros
+
+the distillation that worked best (peaking at 58% test and 97.7% train. was running on 29/09  00:51:24)
+alert python main.py --run_name=alex_celeba_balance  --model=alex \
+  --dataset='"summaries/alex_celeba_balance/data/data_optimized_top_layer_alex_celeba_balance_<clas>_<batch>.npy"' \
+  --procedure=distill \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
+  --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 \
+  --lr=0.0001 --eval_interval=590 --checkpoint_interval=590 --removed=4zeros
+this (best distill) ended at 01/10  11:44:39 but like in the early AM
+
+started hinton-distilling alex half celeba_balance at 01/10  11:57:33
+alert python main.py --run_name=alex_celeba_balance   --model=alex \
+  --dataset=celeba_balance   --procedure=distill \
+  --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta \
+  --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 \
+  --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 \
+  --lr=0.0001 --eval_interval=3120 --checkpoint_interval=3120 --removed=4zeros
+that ran out of memory so im running train alex half:
+alert python main.py --run_name=alexhalf_celeba_balance   --model=alex_half \
+  --dataset=celeba_balance --procedure=train --eval_interval=3120 \
+  --checkpoint_interval=3120 --lr=0.00001 --epochs=10
+
+on 03/10  13:38:39 i stopped a train alexhalf celebabalance experiment bc it
+diverged. The one before that is canonical for now. Unless otherwise noted
+below.
+
+04/10  10:07:37 i finished training the REAL canonical alexhalf celebabalance.
+Ignore above.
+
+
+these commands were run too:
+
+alert python main.py --run_name=alexhalf_celeba_balance   --model=alex_half --dataset=celeba_balance --procedure=train --eval_interval=3120 --checkpoint_interval=3120 --lr=0.0001 --epochs=50
+
+alert python main.py --run_name=alex_celeba_balance   --model=alex --dataset=celeba_balance   --procedure=distill --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880 --eval_dataset=celeba_balance --student_model=alex_half --epochs=150 --lr=0.0001 --eval_interval=3120 --checkpoint_interval=3120 --removed=4zeros
+
+
+
+
+
+
+want to optimize dataset again by clipping values:
+alert python main.py --run_name=alex_celeba_balance   --model=alex --dataset=celeba_balance     --procedure=optimize_dataset   --model_meta=summaries/alex_celeba_balance/train/checkpoint/alex-74880.meta   --model_checkpoint=summaries/alex_celeba_balance/train/checkpoint/alex-74880   --optimization_objective=top_layer   --lr=0.05
+
+but before that we need to verify teacher model is giving correct accuracy
+
+09/10  02:33:08 just finished gen dataset with clipping
+and started distilling
+
+09/10  10:57:17 started re optimizing dataset bc the distill wasnt giving good accuracies. now we're doing 300 batches rather than 125
