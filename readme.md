@@ -217,12 +217,14 @@ statistics and optimized datasets.
 python viz/print_stats.py --run_name=experiment
 ```
 
-#### Vizualize per-class and per-pixel means, as well as a randomly selected
-example of an optimized dataset.
+#### Vizualize per-class and per-pixel means, as well as a randomly selected example of an optimized dataset.
+Note that `pixel_intensities_batch.py` expects a single batch, so you have to
+add the specific batch you want to visualize. Since batches are saved
+separately, we no longer have a script to visualize all batches at once.
 
 ```bash
-python viz/print_stats.py \
-    --dataset="summaries/experiment/data/data_optimized_all_layers_dropout_experiment_<clas>_<batch>.npy"
+python viz/pixel_intensities_batch.py \
+    --dataset=summaries/experiment/data/data_optimized_all_layers_dropout_experiment_0_0.npy
 ```
 
 <div align="center">
